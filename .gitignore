@@ -1,0 +1,24 @@
+# binarios y archivos intermedios de nvcc / visual studio
+*.exe
+*.lib
+*.exp
+*.obj
+*.pdb
+*.ilk
+
+# pdfs (el paper se enlaza en el README, no se sube)
+*.pdf
+
+# RESULTADOS: todavia no se publican (se generan al correr los programas)
+cpu_baseline/results/
+cuda/resultados/
+
+# python
+__pycache__/
+*.pyc
+
+# editores / sistema
+.vscode/
+.vs/
+Thumbs.db
+desktop.ini
