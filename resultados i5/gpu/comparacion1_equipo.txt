@@ -1,0 +1,7 @@
+gpu: NVIDIA GeForce RTX 3050 6GB Laptop GPU
+sms: 20
+compute: 8.6
+memoria_mb: 6144
+cuda_driver: 13000
+cuda_runtime: 12090
+corridas: 5

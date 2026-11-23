@@ -24,10 +24,13 @@
 //     (antes: 2 viajes a memoria por cada trozo de 32 vecinos)
 //   - menos memoria compartida por warp -> mas warps por SM
 //
-// VERSION 3: el filtro y la tabla de visitados llevan EPOCA en cada casilla.
-//   Antes se limpiaban en cada consulta y con Ls grande (el filtro crece con Ls^2)
-//   eso llenaba la cache L2. Ahora cada consulta usa una epoca nueva y no se limpia
-//   nada. El resultado es el mismo: una casilla vieja nunca coincide con (epoca, id)
+// INTENTO DESCARTADO (version 3): poner EPOCA en cada casilla del filtro y de los
+//   visitados para no limpiarlos en cada consulta. Daba el mismo resultado pero fue
+//   MAS LENTO (prueba A/B en RTX 3050, DiskANN: Ls=75 141k -> 98k QPS, Ls=500 igual).
+//   Motivo: limpiar ESCRIBE lineas completas que quedan en la cache L2, y despues las
+//   lecturas del filtro salen de ahi; con epocas cada lectura iba a memoria principal y
+//   las casillas pasaban de 4 a 8 bytes. Por eso aqui SE LIMPIA en cada consulta.
+//   (el kernel de HNSW si usa epocas: ahi hay una tabla por nivel y limpiar es mas caro)
 
 #include <algorithm>
 #include <climits>
@@ -85,33 +88,29 @@ __device__ int contarMenoresIguales(const int* dist, const uint32_t* ids, int n,
     return lo;
 }
 
-// ---- tabla de visitados (exacta, direccionamiento abierto, con epoca) -------
-// una casilla de otra epoca cuenta como vacia (ver marca() en utiles_gpu.cuh)
+// ---- tabla de visitados (exacta, direccionamiento abierto) ------------------
 __device__ __forceinline__ uint32_t posVis(uint32_t id, uint32_t mascara) {
     return (uint32_t)(hash64_2(id) >> 32) & mascara;
 }
 
 // solo la llama el hilo 0
-__device__ void sumarVisita(unsigned long long* claves, int* cuentas, uint32_t mascara,
-                            uint32_t epoca, uint32_t id) {
+__device__ void sumarVisita(uint32_t* claves, int* cuentas, uint32_t mascara, uint32_t id) {
     uint32_t h = posVis(id, mascara);
-    const unsigned long long buscado = marca(epoca, id);
     while (true) {
-        unsigned long long c = claves[h];
-        if (c == buscado) { cuentas[h]++; return; }
-        if ((uint32_t)(c >> 32) != epoca) { claves[h] = buscado; cuentas[h] = 1; return; }
+        uint32_t c = claves[h];
+        if (c == id) { cuentas[h]++; return; }
+        if (c == VACIO) { claves[h] = id; cuentas[h] = 1; return; }
         h = (h + 1) & mascara;
     }
 }
 
-__device__ int vecesVisitado(const unsigned long long* claves, const int* cuentas,
-                             uint32_t mascara, uint32_t epoca, uint32_t id) {
+__device__ int vecesVisitado(const uint32_t* claves, const int* cuentas, uint32_t mascara,
+                             uint32_t id) {
     uint32_t h = posVis(id, mascara);
-    const unsigned long long buscado = marca(epoca, id);
     while (true) {
-        unsigned long long c = claves[h];
-        if (c == buscado) return cuentas[h];
-        if ((uint32_t)(c >> 32) != epoca) return 0;
+        uint32_t c = claves[h];
+        if (c == id) return cuentas[h];
+        if (c == VACIO) return 0;
         h = (h + 1) & mascara;
     }
 }
@@ -132,8 +131,7 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
                                const int* __restrict__ palabrasQ, const int* __restrict__ normasQ,
                                uint32_t numConsultas, const uint32_t* __restrict__ vecinos, int G,
                                ConfigBusqueda cfg, int bitsFiltro, uint32_t capVis,
-                               uint32_t epocaBase, unsigned long long* filtroGlobal,
-                               unsigned long long* visClavesGlobal,
+                               uint32_t* filtroGlobal, uint32_t* visClavesGlobal,
                                int* visCuentasGlobal, uint32_t* salidaIds, int* salidaDists,
                                int* salidaComp, int* salidaBanderas) {
     extern __shared__ __align__(16) unsigned char compartida[];
@@ -172,8 +170,8 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
     // ---- memoria global auxiliar de este warp ----
     const uint32_t tamFiltro = 1u << bitsFiltro;
     const uint32_t mascaraFiltro = tamFiltro - 1;
-    unsigned long long* filtro = filtroGlobal + (size_t)warpGlobal * tamFiltro;
-    unsigned long long* visClaves = visClavesGlobal + (size_t)warpGlobal * capVis;
+    uint32_t* filtro = filtroGlobal + (size_t)warpGlobal * tamFiltro;
+    uint32_t* visClaves = visClavesGlobal + (size_t)warpGlobal * capVis;
     int* visCuentas = visCuentasGlobal + (size_t)warpGlobal * capVis;
     const uint32_t mascaraVis = capVis - 1;
 
@@ -191,12 +189,10 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
         ((int*)q4)[lane] = palabrasQ[(size_t)q * PALABRAS_POR_VEC + lane];
         const int normaQ = normasQ[q];
 
-        // TABLAS "NUEVAS" PARA ESTA CONSULTA: en la CPU el filtro y los visitados se
-        // crean vacios en cada consulta. Aqui en vez de limpiarlos se cambia la epoca.
-        // OJO: la epoca NUNCA se puede repetir mientras la tabla viva, ni siquiera entre
-        // lanzamientos del kernel (las tablas no se limpian entre lanzamientos). Por eso
-        // depende de la consulta y de epocaBase, que el host sube en cada lanzamiento
-        const uint32_t epoca = epocaBase + q + 1;   // nunca 0 (0 = tabla recien creada)
+        // LIMPIAR filtro y visitados: en la CPU se crean vacios en cada consulta.
+        // (limpiar resulto mas rapido que usar epocas, ver comentario al inicio)
+        for (uint32_t i = lane; i < tamFiltro; i += 32) filtro[i] = VACIO;
+        for (uint32_t i = lane; i < capVis; i += 32) visClaves[i] = VACIO;
         __syncwarp();
         // pedazo de la consulta que le toca a este hilo en los grupos de 8 (ver 2b)
         const int4 qMio = q4[sub];
@@ -236,7 +232,7 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
             // ===== 1. VISITAR EL ACTUAL (mientras llega la fila) =====
             if (lane == 0) {
                 fVis[u] = 1;
-                sumarVisita(visClaves, visCuentas, mascaraVis, epoca, actualId);
+                sumarVisita(visClaves, visCuentas, mascaraVis, actualId);
             }
             __syncwarp();
             numVisitados++;
@@ -263,13 +259,13 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
             //      * en trozos anteriores -> se busca hacia atras en cId/cDist
             //      * si nadie antes cayo ahi -> el valor leido de memoria
             uint32_t locT[MAX_TROZOS];
-            unsigned long long memT[MAX_TROZOS];
+            uint32_t memT[MAX_TROZOS];
 #pragma unroll
             for (int t = 0; t < MAX_TROZOS; t++) {
                 bool participa = (aT[t] != VACIO) && (aT[t] != q);
                 locT[t] = participa ? (uint32_t)(hash64_2(aT[t]) & mascaraFiltro)
                                     : (0x80000000u | (uint32_t)(t * 32 + lane));  // nunca choca
-                memT[t] = participa ? filtro[locT[t]] : 0ull;
+                memT[t] = participa ? filtro[locT[t]] : VACIO;
             }
 
             int nPend = 0;   // vecinos a los que hay que calcular distancia
@@ -286,8 +282,7 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
                     if (antes) {
                         yaVisto = participa && (idAnterior == a);
                     } else {
-                        // lo leido de memoria solo vale si es de ESTA consulta (epoca)
-                        yaVisto = participa && (memT[t] == marca(epoca, a));
+                        yaVisto = participa && (memT[t] == a);
                         if (participa) {
                             for (int p = t * 32 - 1; p >= 0; p--)
                                 if (cId[p] == loc) {
@@ -302,7 +297,7 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
                     cDist[t * 32 + lane] = (int)a;
                     // a memoria escribe solo el ULTIMO de cada casilla en este trozo
                     unsigned despues = mismoLoc & ~((2u << lane) - 1);
-                    if (participa && despues == 0) filtro[loc] = marca(epoca, a);
+                    if (participa && despues == 0) filtro[loc] = a;
 
                     // los que pasan el filtro se anotan EN ORDEN en la lista pendiente
                     bool calcular = participa && !yaVisto;
@@ -424,7 +419,7 @@ __global__ void kernelBusqueda(const int* __restrict__ palabrasBase,
                     // set_difference(frontera, visitados): la copia n "rep" esta
                     // visitada si el id se visito mas de "rep" veces
                     if (entra)
-                        vis = (rep < vecesVisitado(visClaves, visCuentas, mascaraVis, epoca, id));
+                        vis = (rep < vecesVisitado(visClaves, visCuentas, mascaraVis, id));
                 }
                 unsigned m = __ballot_sync(TODOS, entra);
                 if (entra) {
@@ -596,15 +591,10 @@ void BuscadorGPU::preparar(const GrafoGPU& grafo, uint32_t nq, const ConfigBusqu
     bloques = std::max(1, bloquesPorSM) * prop.multiProcessorCount;
     size_t totalWarps = (size_t)bloques * warpsPorBloque;
 
-    // tablas con epoca: empiezan en 0 (la epoca 0 no se usa nunca)
-    size_t bytesFiltro = totalWarps * ((size_t)1 << bitsFiltro) * sizeof(unsigned long long);
-    size_t bytesVis = totalWarps * (size_t)capVis * sizeof(unsigned long long);
-    CHECK_CUDA(cudaMalloc(&filtro, bytesFiltro));
-    CHECK_CUDA(cudaMalloc(&visClaves, bytesVis));
+    // el kernel limpia estas tablas al empezar cada consulta
+    CHECK_CUDA(cudaMalloc(&filtro, totalWarps * ((size_t)1 << bitsFiltro) * sizeof(uint32_t)));
+    CHECK_CUDA(cudaMalloc(&visClaves, totalWarps * capVis * sizeof(uint32_t)));
     CHECK_CUDA(cudaMalloc(&visCuentas, totalWarps * capVis * sizeof(int)));
-    CHECK_CUDA(cudaMemset(filtro, 0, bytesFiltro));
-    CHECK_CUDA(cudaMemset(visClaves, 0, bytesVis));
-    epocaBase = 0;
     CHECK_CUDA(cudaMalloc(&idsDev, (size_t)nq * cfg.k * sizeof(uint32_t)));
     CHECK_CUDA(cudaMalloc(&distsDev, (size_t)nq * cfg.k * sizeof(int)));
     CHECK_CUDA(cudaMalloc(&compDev, (size_t)nq * sizeof(int)));
@@ -613,17 +603,11 @@ void BuscadorGPU::preparar(const GrafoGPU& grafo, uint32_t nq, const ConfigBusqu
 
 void BuscadorGPU::lanzar(const VectoresGPU& base, const VectoresGPU& consultas,
                          const GrafoGPU& grafo, cudaStream_t stream) {
-    // CADA LANZAMIENTO USA EPOCAS NUEVAS: epocaBase + 1 .. epocaBase + numConsultas
-    if ((uint64_t)epocaBase + numConsultas + 1 >= 0xffffffffull) {
-        fprintf(stderr, "se acabaron las epocas: volver a llamar a preparar()\n");
-        exit(1);
-    }
     kernelBusqueda<<<bloques, warpsPorBloque * 32, bytesCompartida, stream>>>(
         base.palabras, base.normas, consultas.palabras, consultas.normas, numConsultas,
-        grafo.vecinos, (int)grafo.gradoMax, cfg, bitsFiltro, capVis, epocaBase, filtro,
-        visClaves, visCuentas, idsDev, distsDev, compDev, banderasDev);
+        grafo.vecinos, (int)grafo.gradoMax, cfg, bitsFiltro, capVis, filtro, visClaves,
+        visCuentas, idsDev, distsDev, compDev, banderasDev);
     CHECK_CUDA(cudaGetLastError());
-    epocaBase += numConsultas + 1;
 }
 
 void BuscadorGPU::liberar() {

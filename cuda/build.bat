@@ -12,11 +12,12 @@ if not exist "%VCVARS%" (
 )
 call "%VCVARS%" >nul
 
-rem se compila para dos GPUs a la vez (requiere CUDA 12.8 o mas nuevo):
+rem se compila para tres GPUs a la vez (requiere CUDA 12.8 o mas nuevo):
 rem   sm_86  = RTX 3050 (Ampere)
+rem   sm_89  = RTX 4050 (Ada Lovelace)
 rem   sm_120 = RTX 5050 (Blackwell)
 rem   compute_120 = codigo PTX para que GPUs mas nuevas lo compilen al vuelo
-set ARCHS=-gencode arch=compute_86,code=sm_86 -gencode arch=compute_120,code=sm_120 -gencode arch=compute_120,code=compute_120
+set ARCHS=-gencode arch=compute_86,code=sm_86 -gencode arch=compute_89,code=sm_89 -gencode arch=compute_120,code=sm_120 -gencode arch=compute_120,code=compute_120
 set FLAGS=-O3 -std=c++17 %ARCHS% -lineinfo -Xcompiler "/W3 /wd4996"
 
 echo Compilando paso1_carga.exe ...

@@ -58,13 +58,19 @@ if not exist resultados mkdir resultados
     powershell -NoProfile -Command "Get-CimInstance Win32_PhysicalMemory | Format-Table Manufacturer,Capacity,Speed,ConfiguredClockSpeed -AutoSize"
     echo === PLAN DE ENERGIA ===
     powercfg /getactivescheme
+    echo.
+    echo === MODO DE ENERGIA DE WINDOWS 11 (el que importa^) ===
+    echo ded574b5-... = Mejor rendimiento, 961cc777-... = Mejor eficiencia, 00000000-... = Equilibrado
+    reg query "HKLM\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes" /v ActiveOverlayAcPowerScheme
     echo === GPU ===
     nvidia-smi --query-gpu=name,driver_version,memory.total,power.limit,clocks.max.sm,clocks.max.mem,pcie.link.gen.max,pcie.link.width.max --format=csv
 ) > resultados\comparacion1_equipo_windows.txt 2>&1
 
 echo.
 echo [1/4] Compilando ...
-call build.bat
+rem OJO: todo con ruta completa (%~dp0). En algunas PCs cmd NO busca programas en la
+rem carpeta actual (NoDefaultCurrentDirectoryInExePath) y "build.bat" solo no se encuentra
+call "%~dp0build.bat"
 if errorlevel 1 (
     echo ERROR compilando
     exit /b 1
@@ -72,7 +78,7 @@ if errorlevel 1 (
 
 echo.
 echo [2/4] Verificando datos y grafos en la GPU (paso1_carga.exe) ...
-paso1_carga.exe "%CARPETA%"
+"%~dp0paso1_carga.exe" "%CARPETA%"
 if errorlevel 1 (
     echo ERROR en paso1_carga: revisar la carpeta de datos
     exit /b 1
@@ -80,7 +86,7 @@ if errorlevel 1 (
 
 echo.
 echo [3/4] Midiendo la busqueda en GPU (4 algoritmos x 18 configuraciones, mejor de 5) ...
-comparacion1.exe "%CARPETA%" "%CSVCPU%" - - 5
+"%~dp0comparacion1.exe" "%CARPETA%" "%CSVCPU%" - - 5
 if errorlevel 1 (
     echo ERROR en comparacion1.exe
     exit /b 1

@@ -293,10 +293,14 @@ vecino (Paso 4) puede aparecer como diferencia en HNSW.
   una ida a memoria por cada trozo de 32 vecinos.
 - Se reusan arreglos de memoria compartida para que entren mas warps por SM, y el
   tamano de bloque respeta el limite de registros del kernel.
-- **Tablas con epoca:** el filtro "ya visto" crece con Ls² y antes se limpiaba en cada
-  consulta, lo que llenaba la cache L2 con Ls grandes. Ahora cada casilla guarda
-  `(epoca << 32 | id)` y cada consulta usa una epoca nueva: no se limpia nada y el
-  resultado es el mismo (una casilla vieja nunca coincide).
+- **Intento descartado — tablas con epoca:** se probo guardar `(epoca << 32 | id)` en
+  cada casilla del filtro para no limpiarlo en cada consulta. Daba el mismo resultado
+  pero fue **mas lento** (prueba A/B en RTX 3050, DiskANN Ls=75: 141k → 98k QPS; Ls=500
+  igual): limpiar escribe lineas completas que quedan en la L2, y las casillas pasaban de
+  4 a 8 bytes. El kernel de DiskANN/HCNNG/PyNNDescent **limpia** las tablas; el de HNSW si
+  usa epocas (una tabla por nivel). Como las tablas viven entre lanzamientos, la epoca
+  depende de la consulta, el nivel y el lanzamiento, y `comparacion1` verifica el
+  determinismo (calentamiento == ultima corrida).
 
 ---
 

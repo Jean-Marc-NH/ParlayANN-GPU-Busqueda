@@ -58,6 +58,11 @@ bash run_benchmark.sh msspacev-1M      # todos los hilos de la maquina, 30-60 mi
 Usa todos los hilos que ve WSL (`nproc`). Los programas de GPU y el reporte detectan
 solos esa corrida (la de mas hilos) y su grafo.
 
+**IMPORTANTE: no pasar un numero de hilos en la corrida principal.** La comparacion
+justa es la CPU completa contra la GPU completa. Si se quiere ademas comparar con el
+mismo numero de hilos que la otra maquina (por ejemplo 12), hacerlo como corrida
+EXTRA (`bash run_benchmark.sh msspacev-1M 12`) y reportarla aparte.
+
 ---
 
 ## 3. Comparacion 1 en GPU (en cada maquina)
@@ -88,13 +93,15 @@ Esperado: `72 de 72` con recall identico, `72 de 72` deterministas, `desbordes 0
 
 | # | Que | Comando (en `cuda`, PowerShell) | Para que seccion |
 |---|---|---|---|
-| E1 | Techo de memoria de la GPU | `.\micro_distancias.exe $datos > resultados\micro_distancias.txt` | Discusion: por que el speedup tiene un techo |
-| E2 | Donde se va el tiempo del kernel | `.\paso2_perfil.exe $datos - DiskANN 75 > resultados\perfil_diskann_75.txt` y lo mismo con `500` | Diseno / Discusion |
+| E1 | Techo de memoria de la GPU | `.\micro_distancias.exe $datos \| Out-File -Encoding utf8 resultados\micro_distancias.txt` | Discusion: por que el speedup tiene un techo |
+| E2 | Donde se va el tiempo del kernel | `.\paso2_perfil.exe $datos - DiskANN 75 \| Out-File -Encoding utf8 resultados\perfil_diskann_75.txt` y lo mismo con `500` | Diseno / Discusion |
 | E3 | Repetibilidad | correr `comparacion1.bat` **dos veces** y comparar los QPS | Metodologia (variacion entre corridas) |
 | E4 | Escalabilidad de la CPU (opcional, largo) | en WSL: `for t in 1 2 4 8; do ALGOS=ParDiskANN bash run_benchmark.sh msspacev-1M $t; done` | Resultados: con cuantos hilos de CPU se iguala a la GPU |
 
 Notas:
 - E1 y E2 reciben la carpeta de datos como primer argumento (`$datos`, ver paso 3).
+- Usar `| Out-File -Encoding utf8` y no `>`: en PowerShell `>` guarda en UTF-16 y los
+  archivos se ven mal en otros programas.
 - E4 reconstruye el grafo con cada cantidad de hilos y tarda bastante (con 1 hilo puede
   pasar de 20 minutos). Despues de E4, **la corrida principal sigue siendo la de mas
   hilos**, asi que la comparacion de GPU no cambia.

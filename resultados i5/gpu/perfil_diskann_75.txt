@@ -1,0 +1,20 @@
+﻿GPU: NVIDIA GeForce RTX 3050 6GB Laptop GPU
+base 1000000, consultas 29316, gt k=100
+  csv de CPU: corrida con 12 hilos
+  grafo R64_L128_alpha1.2_threads12 (construido con 12 hilos)
+
+=== DiskANN (gradoMax 64) ===
+    Ls  visit |   rec GPU   rec CPU  igual |    QPS GPU    QPS CPU  speedup |   comp/q
+  [perfil] Ls=75: 79.7 vueltas/consulta, 39362 ciclos/vuelta
+     inicio/salida     0.3%  (    100 ciclos/vuelta)
+     visitar           7.8%  (   3067 ciclos/vuelta)
+     filtro/vecinos   24.2%  (   9533 ciclos/vuelta)
+     distancias       48.0%  (  18912 ciclos/vuelta)
+     ordenar           3.0%  (   1190 ciclos/vuelta)
+     union            10.2%  (   4021 ciclos/vuelta)
+     mezcla            2.2%  (    859 ciclos/vuelta)
+     cut+siguiente     4.3%  (   1681 ciclos/vuelta)
+    75      - |   0.95460       (=)     SI |     147576      32079   4.600x |     3535  [desbordes 0, cortas 13]
+
+configuraciones con recall identico a la CPU: 1 de 1
+resultados en resultados\paso2_parcial.csv

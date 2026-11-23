@@ -1,0 +1,29 @@
+=== CPU ===
+
+
+Name                      : 12th Gen Intel(R) Core(TM) i5-12450HX
+NumberOfCores             : 8
+NumberOfLogicalProcessors : 12
+MaxClockSpeed             : 2400
+
+
+
+=== RAM ===
+
+Manufacturer          Capacity Speed ConfiguredClockSpeed
+------------          -------- ----- --------------------
+Ramaxel Technology 12884901888  4800                 4800
+Ramaxel Technology 12884901888  4800                 4800
+
+
+=== PLAN DE ENERGIA ===
+GUID de plan de energía: 381b4222-f694-41f0-9685-ff5bb260df2e  (Equilibrado)
+=== MODO DE ENERGIA DE WINDOWS 11 (el que importa) ===
+ded574b5-... = Mejor rendimiento, 961cc777-... = Mejor eficiencia, 00000000-... = Equilibrado
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes
+    ActiveOverlayAcPowerScheme    REG_SZ    ded574b5-45a0-4f42-8737-46345c09c238
+
+=== GPU ===
+name, driver_version, memory.total [MiB], power.limit [W], clocks.max.sm [MHz], clocks.max.memory [MHz], pcie.link.gen.max, pcie.link.width.max
+NVIDIA GeForce RTX 3050 6GB Laptop GPU, 581.86, 6144 MiB, [N/A], 2100 MHz, 7001 MHz, 4, 16

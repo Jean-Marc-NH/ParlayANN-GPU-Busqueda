@@ -1,0 +1,228 @@
+% referencias.bib
+% Referencias para el short paper (busqueda de ParlayANN en GPU)
+% Datos verificados en arXiv, DBLP, IEEE Xplore, ACM, PMLR y NeurIPS (nov. 2026).
+% Los marcados con "VERIFICAR" tienen algun dato que conviene confirmar antes de entregar.
+
+% =====================================================================
+% PAPER ORIGINAL (base de todo el trabajo)
+% =====================================================================
+@inproceedings{manohar2024parlayann,
+  author    = {Manohar, Magdalen Dobson and Shen, Zheqi and Blelloch, Guy E. and
+               Dhulipala, Laxman and Gu, Yan and Simhadri, Harsha Vardhan and Sun, Yihan},
+  title     = {{ParlayANN}: Scalable and Deterministic Parallel Graph-Based
+               Approximate Nearest Neighbor Search Algorithms},
+  booktitle = {Proceedings of the 29th ACM SIGPLAN Annual Symposium on Principles and
+               Practice of Parallel Programming (PPoPP '24)},
+  pages     = {270--285},
+  year      = {2024},
+  doi       = {10.1145/3627535.3638475},
+  note      = {arXiv:2305.04359}
+}
+
+@inproceedings{blelloch2020parlaylib,
+  author    = {Blelloch, Guy E. and Anderson, Daniel and Dhulipala, Laxman},
+  title     = {{ParlayLib} -- A Toolkit for Parallel Algorithms on Shared-Memory
+               Multicore Machines},
+  booktitle = {Proceedings of the 32nd ACM Symposium on Parallelism in Algorithms and
+               Architectures (SPAA '20)},
+  pages     = {507--509},
+  year      = {2020},
+  doi       = {10.1145/3350755.3400254}
+}
+
+% =====================================================================
+% LOS CUATRO ALGORITMOS DE GRAFOS (seccion Antecedentes)
+% =====================================================================
+@inproceedings{subramanya2019diskann,
+  author    = {Subramanya, Suhas Jayaram and Devvrit, Fnu and Simhadri, Harsha Vardhan and
+               Krishnaswamy, Ravishankar and Kadekodi, Rohan},
+  title     = {{DiskANN}: Fast Accurate Billion-point Nearest Neighbor Search on a Single Node},
+  booktitle = {Advances in Neural Information Processing Systems 32 (NeurIPS 2019)},
+  pages     = {13748--13758},
+  year      = {2019}
+}
+
+% VERIFICAR: volumen/numero (42/4) tomados de la version de 2020 en IEEE Xplore
+@article{malkov2020hnsw,
+  author    = {Malkov, Yury A. and Yashunin, Dmitry A.},
+  title     = {Efficient and Robust Approximate Nearest Neighbor Search Using
+               Hierarchical Navigable Small World Graphs},
+  journal   = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume    = {42},
+  number    = {4},
+  pages     = {824--836},
+  year      = {2020},
+  doi       = {10.1109/TPAMI.2018.2889473}
+}
+
+@article{munoz2019hcnng,
+  author    = {Vargas Mu{\~n}oz, Javier and Gon{\c{c}}alves, Marcos A. and Dias, Zanoni and
+               da S. Torres, Ricardo},
+  title     = {Hierarchical Clustering-Based Graphs for Large Scale Approximate Nearest
+               Neighbor Search},
+  journal   = {Pattern Recognition},
+  volume    = {96},
+  pages     = {106970},
+  year      = {2019},
+  doi       = {10.1016/j.patcog.2019.106970}
+}
+
+@inproceedings{dong2011nndescent,
+  author    = {Dong, Wei and Charikar, Moses and Li, Kai},
+  title     = {Efficient K-Nearest Neighbor Graph Construction for Generic Similarity Measures},
+  booktitle = {Proceedings of the 20th International Conference on World Wide Web (WWW '11)},
+  pages     = {577--586},
+  year      = {2011},
+  doi       = {10.1145/1963405.1963487}
+}
+
+@misc{mcinnes2020pynndescent,
+  author       = {McInnes, Leland},
+  title        = {{PyNNDescent} for Fast Approximate Nearest Neighbors},
+  year         = {2020},
+  howpublished = {\url{https://pynndescent.readthedocs.io/}}
+}
+
+@article{fu2019nsg,
+  author    = {Fu, Cong and Xiang, Chao and Wang, Changxu and Cai, Deng},
+  title     = {Fast Approximate Nearest Neighbor Search with the Navigating Spreading-out Graph},
+  journal   = {Proceedings of the VLDB Endowment},
+  volume    = {12},
+  number    = {5},
+  pages     = {461--474},
+  year      = {2019}
+}
+
+% =====================================================================
+% ANNS EN GPU (seccion Trabajo relacionado: que se hizo antes en GPU)
+% =====================================================================
+@article{johnson2021faiss,
+  author    = {Johnson, Jeff and Douze, Matthijs and J{\'e}gou, Herv{\'e}},
+  title     = {Billion-Scale Similarity Search with {GPUs}},
+  journal   = {IEEE Transactions on Big Data},
+  volume    = {7},
+  number    = {3},
+  pages     = {535--547},
+  year      = {2021},
+  doi       = {10.1109/TBDATA.2019.2921572},
+  note      = {arXiv:1702.08734}
+}
+
+@inproceedings{zhao2020song,
+  author    = {Zhao, Weijie and Tan, Shulong and Li, Ping},
+  title     = {{SONG}: Approximate Nearest Neighbor Search on {GPU}},
+  booktitle = {IEEE 36th International Conference on Data Engineering (ICDE)},
+  pages     = {1033--1044},
+  year      = {2020},
+  doi       = {10.1109/ICDE48307.2020.00094}
+}
+
+% VERIFICAR: nombres completos de los autores y DOI en IEEE Xplore
+@inproceedings{yu2022ganns,
+  author    = {Yu, Yuanhang and Wen, Dong and Zhang, Ying and Qin, Lu and Zhang, Wenjie and
+               Lin, Xuemin},
+  title     = {{GPU}-accelerated Proximity Graph Approximate Nearest Neighbor Search and
+               Construction},
+  booktitle = {IEEE 38th International Conference on Data Engineering (ICDE)},
+  pages     = {552--564},
+  year      = {2022}
+}
+
+@article{groh2023ggnn,
+  author    = {Groh, Fabian and Ruppert, Lukas and Wieschollek, Patrick and Lensch, Hendrik P. A.},
+  title     = {{GGNN}: Graph-Based {GPU} Nearest Neighbor Search},
+  journal   = {IEEE Transactions on Big Data},
+  volume    = {9},
+  number    = {1},
+  pages     = {267--279},
+  year      = {2023},
+  doi       = {10.1109/TBDATA.2022.3161156},
+  note      = {arXiv:1912.01059}
+}
+
+% VERIFICAR: paginas y DOI de la version de ICDE 2024
+@inproceedings{ootomo2024cagra,
+  author    = {Ootomo, Hiroyuki and Naruse, Akira and Nolet, Corey and Wang, Ray and
+               Feher, Tamas and Wang, Yong},
+  title     = {{CAGRA}: Highly Parallel Graph Construction and Approximate Nearest Neighbor
+               Search for {GPUs}},
+  booktitle = {IEEE 40th International Conference on Data Engineering (ICDE)},
+  year      = {2024},
+  note      = {arXiv:2308.15136}
+}
+
+@misc{karthik2024bang,
+  author       = {V., Karthik and Khan, Saim and Singh, Somesh and Simhadri, Harsha Vardhan and
+                  Vedurada, Jyothi},
+  title        = {{BANG}: Billion-Scale Approximate Nearest Neighbor Search using a Single {GPU}},
+  year         = {2024},
+  howpublished = {arXiv:2401.11324}
+}
+
+% =====================================================================
+% PARALELISMO EN CPU DENTRO DE UNA CONSULTA (contraste con nuestro enfoque)
+% =====================================================================
+@inproceedings{peng2023iqan,
+  author    = {Peng, Zhen and Zhang, Minjia and Li, Kai and Jin, Ruoming and Ren, Bin},
+  title     = {{iQAN}: Fast and Accurate Vector Search with Efficient Intra-Query Parallelism
+               on Multi-Core Architectures},
+  booktitle = {Proceedings of the 28th ACM SIGPLAN Annual Symposium on Principles and
+               Practice of Parallel Programming (PPoPP '23)},
+  pages     = {313--328},
+  year      = {2023},
+  doi       = {10.1145/3572848.3577527}
+}
+
+% =====================================================================
+% BENCHMARKS, ESTUDIOS Y DATASET (seccion Metodologia)
+% =====================================================================
+@article{aumuller2020annbenchmarks,
+  author    = {Aum{\"u}ller, Martin and Bernhardsson, Erik and Faithfull, Alexander},
+  title     = {{ANN-Benchmarks}: A Benchmarking Tool for Approximate Nearest Neighbor Algorithms},
+  journal   = {Information Systems},
+  volume    = {87},
+  year      = {2020},
+  doi       = {10.1016/j.is.2019.02.006}
+}
+
+@inproceedings{simhadri2022bigann,
+  author    = {Simhadri, Harsha Vardhan and Williams, George and Aum{\"u}ller, Martin and
+               Douze, Matthijs and Babenko, Artem and Baranchuk, Dmitry and Chen, Qi and
+               Hosseini, Lucas and Krishnaswamy, Ravishankar and Srinivasa, Gopal and
+               Subramanya, Suhas Jayaram and Wang, Jingdong},
+  title     = {Results of the {NeurIPS'21} Challenge on Billion-Scale Approximate Nearest
+               Neighbor Search},
+  booktitle = {Proceedings of the NeurIPS 2021 Competitions and Demonstrations Track},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {176},
+  pages     = {177--189},
+  year      = {2022}
+}
+
+@article{wang2021graphsurvey,
+  author    = {Wang, Mengzhao and Xu, Xiaoliang and Yue, Qiang and Wang, Yuxiang},
+  title     = {A Comprehensive Survey and Experimental Comparison of Graph-Based Approximate
+               Nearest Neighbor Search},
+  journal   = {Proceedings of the VLDB Endowment},
+  volume    = {14},
+  number    = {11},
+  pages     = {1964--1978},
+  year      = {2021}
+}
+
+@misc{spacev1b,
+  author       = {{Microsoft}},
+  title        = {{SPACEV1B}: A Billion-Scale Vector Dataset for Text Descriptors},
+  year         = {2021},
+  howpublished = {\url{https://github.com/microsoft/SPTAG/tree/main/datasets/SPACEV1B}}
+}
+
+% =====================================================================
+% CUDA (seccion Diseno: __dp4a, primitivas de warp)
+% =====================================================================
+@misc{nvidia2025cudaguide,
+  author       = {{NVIDIA Corporation}},
+  title        = {{CUDA C++} Programming Guide},
+  year         = {2025},
+  howpublished = {\url{https://docs.nvidia.com/cuda/cuda-c-programming-guide/}}
+}

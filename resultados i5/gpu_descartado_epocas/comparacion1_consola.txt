@@ -1,0 +1,238 @@
+Datos:   \\wsl.localhost\Ubuntu\home\usuario\parlay\big-ann-benchmarks\data
+CSV CPU: ..\cpu_baseline\results\msspacev-1M_t12_20261111_162450\all_results.csv
+
+[0/4] Guardando datos del equipo en resultados\comparacion1_equipo_windows.txt ...
+
+[1/4] Compilando ...
+"vswhere.exe" no se reconoce como un comando interno o externo,
+programa o archivo por lotes ejecutable.
+Compilando paso1_carga.exe ...
+paso1_carga.cu
+tmpxft_00002ab4_00000000-7_paso1_carga.compute_120.cudafe1.cpp
+datos_gpu.cu
+tmpxft_00002ab4_00000000-12_datos_gpu.compute_120.cudafe1.cpp
+lectores.cpp
+   Creando biblioteca paso1_carga.lib y objeto paso1_carga.exp
+Compilando paso2_busqueda.exe ...
+paso2_busqueda.cu
+tmpxft_00005008_00000000-7_paso2_busqueda.compute_120.cudafe1.cpp
+busqueda.cu
+tmpxft_00005008_00000000-12_busqueda.compute_120.cudafe1.cpp
+datos_gpu.cu
+tmpxft_00005008_00000000-17_datos_gpu.compute_120.cudafe1.cpp
+lectores.cpp
+evaluacion.cpp
+   Creando biblioteca paso2_busqueda.lib y objeto paso2_busqueda.exp
+Compilando paso2_perfil.exe ...
+paso2_busqueda.cu
+tmpxft_00003a64_00000000-7_paso2_busqueda.compute_120.cudafe1.cpp
+busqueda.cu
+tmpxft_00003a64_00000000-12_busqueda.compute_120.cudafe1.cpp
+datos_gpu.cu
+tmpxft_00003a64_00000000-17_datos_gpu.compute_120.cudafe1.cpp
+lectores.cpp
+evaluacion.cpp
+   Creando biblioteca paso2_perfil.lib y objeto paso2_perfil.exp
+Compilando paso3_hnsw.exe ...
+paso3_hnsw.cu
+tmpxft_00004608_00000000-7_paso3_hnsw.compute_120.cudafe1.cpp
+busqueda_hnsw.cu
+tmpxft_00004608_00000000-12_busqueda_hnsw.compute_120.cudafe1.cpp
+hnsw_lector.cpp
+datos_gpu.cu
+tmpxft_00004608_00000000-17_datos_gpu.compute_120.cudafe1.cpp
+lectores.cpp
+evaluacion.cpp
+   Creando biblioteca paso3_hnsw.lib y objeto paso3_hnsw.exp
+Compilando comparacion1.exe ...
+comparacion1.cu
+tmpxft_00000e80_00000000-7_comparacion1.compute_120.cudafe1.cpp
+busqueda.cu
+tmpxft_00000e80_00000000-12_busqueda.compute_120.cudafe1.cpp
+busqueda_hnsw.cu
+tmpxft_00000e80_00000000-17_busqueda_hnsw.compute_120.cudafe1.cpp
+hnsw_lector.cpp
+datos_gpu.cu
+tmpxft_00000e80_00000000-22_datos_gpu.compute_120.cudafe1.cpp
+lectores.cpp
+evaluacion.cpp
+   Creando biblioteca comparacion1.lib y objeto comparacion1.exp
+Compilando micro_distancias.exe ...
+micro_distancias.cu
+tmpxft_000016ac_00000000-7_micro_distancias.compute_120.cudafe1.cpp
+datos_gpu.cu
+tmpxft_000016ac_00000000-12_datos_gpu.compute_120.cudafe1.cpp
+lectores.cpp
+   Creando biblioteca micro_distancias.lib y objeto micro_distancias.exp
+Listo: paso1_carga, paso2_busqueda, paso2_perfil, paso3_hnsw, comparacion1 y micro_distancias
+
+[2/4] Verificando datos y grafos en la GPU (paso1_carga.exe) ...
+GPU: NVIDIA GeForce RTX 3050 6GB Laptop GPU | 20 SMs | compute 8.6 | 6144 MB
+Carpeta de datos: \\wsl.localhost\Ubuntu\home\usuario\parlay\big-ann-benchmarks\data\
+
+== Leyendo dataset ==
+  base:      1000000 vectores x 100 dims (4.2 s)
+  consultas: 29316 vectores x 100 dims (0.0 s)
+  ground truth: 29316 consultas x 100 vecinos (0.1 s)
+
+== Subiendo vectores a la GPU ==
+  [VRAM antes] usada 990 MB de 6144 MB
+  base 125.9 MB + consultas 3.7 MB subidos en 0.06 s
+  [VRAM con vectores] usada 1124 MB de 6144 MB
+
+== Verificacion 1: distancia GPU (__dp4a) vs CPU ==
+  distancias GPU vs CPU: 210000 parejas, 0 diferentes
+  ground truth: 10000/10000 coinciden con dist^2, 10/10000 con dist (raiz)
+  -> OK, identicas
+
+== Grafo DiskANN ==
+  grafo R64_L128_alpha1.2_threads12 (construido con 12 hilos)
+  n=1000000 gradoMax=64 gradoProm=57.4 aristas=57449310 (lectura 0.8 s)
+  subido a la GPU: 248.0 MB en 0.13 s
+  [VRAM con este grafo] usada 1374 MB de 6144 MB
+  grados distintos: 0 de 1000000 | filas distintas: 0 de 2002
+  -> OK, igual al archivo
+
+== Grafo HCNNG ==
+  grafo mst3_nc50_cs1000_threads12 (construido con 12 hilos)
+  n=1000000 gradoMax=150 gradoProm=99.8 aristas=99754108 (lectura 1.4 s)
+  subido a la GPU: 576.0 MB en 0.30 s
+  [VRAM con este grafo] usada 1702 MB de 6144 MB
+  grados distintos: 0 de 1000000 | filas distintas: 0 de 2002
+  -> OK, igual al archivo
+
+== Grafo PyNNDescent ==
+  grafo mxd60_nc10_cs1000_alpha1.2_delta0.05_threads12 (construido con 12 hilos)
+  n=1000000 gradoMax=60 gradoProm=41.4 aristas=41375010 (lectura 0.6 s)
+  subido a la GPU: 232.7 MB en 0.12 s
+  [VRAM con este grafo] usada 1358 MB de 6144 MB
+  grados distintos: 0 de 1000000 | filas distintas: 0 de 2002
+  -> OK, igual al archivo
+
+==============================
+PASO 1 OK: datos y grafos listos en la GPU
+
+[3/4] Midiendo la busqueda en GPU (4 algoritmos x 18 configuraciones, mejor de 5) ...
+GPU: NVIDIA GeForce RTX 3050 6GB Laptop GPU | 20 SMs | 5 corridas por configuracion (se usa la mejor)
+base 1000000, consultas 29316, gt k=100
+  csv de CPU: corrida con 12 hilos
+  grafo R64_L128_alpha1.2_threads12 (construido con 12 hilos)
+
+=== ParDiskANN (grafo cargado en 0.9 s) ===
+    Ls  visit |    recall   =CPU |  QPS kernel   QPS total    QPS CPU |  x kern x total |  comp/q
+    10      3 |   0.00644     SI |     3201264     2949563     760405 |   4.21x   3.88x |     185
+    10      5 |   0.07577     SI |     1682865     1610176     429039 |   3.92x   3.75x |     295
+    10      8 |   0.33140     SI |     1005515      980508     250161 |   4.02x   3.92x |     457
+    10     12 |   0.59666     SI |      667453      655594     182478 |   3.66x   3.59x |     657
+    10     15 |   0.69930     SI |      542956      535196     160539 |   3.38x   3.33x |     792
+    15      - |   0.83848     SI |      354240      350874     108796 |   3.26x   3.23x |    1164  [desbordes 0, cortas 7]
+    20      - |   0.86970     SI |      291359      288849      90430 |   3.22x   3.19x |    1385  [desbordes 0, cortas 13]
+    30      - |   0.90488     SI |      219112      217677      74473 |   2.94x   2.92x |    1823  [desbordes 0, cortas 13]
+    40      - |   0.92431     SI |      174885      173976      59602 |   2.93x   2.92x |    2260  [desbordes 0, cortas 13]
+    50      - |   0.93678     SI |      144846      144238      49390 |   2.93x   2.92x |    2699  [desbordes 0, cortas 13]
+    60      - |   0.94540     SI |      124377      123906      41575 |   2.99x   2.98x |    3136  [desbordes 0, cortas 13]
+    75      - |   0.95460     SI |       95507       95252      32079 |   2.98x   2.97x |    3535  [desbordes 0, cortas 13]
+   100      - |   0.96421     SI |       72949       72827      28461 |   2.56x   2.56x |    4211  [desbordes 0, cortas 13]
+   150      - |   0.97410     SI |       48717       48661      20029 |   2.43x   2.43x |    5489  [desbordes 0, cortas 13]
+   200      - |   0.97921     SI |       36843       36807      15823 |   2.33x   2.33x |    6500  [desbordes 0, cortas 13]
+   400      - |   0.98741     SI |       19970       19959       7920 |   2.52x   2.52x |    9641  [desbordes 0, cortas 13]
+   500      - |   0.98919     SI |       18342       18333       6553 |   2.80x   2.80x |   10956  [desbordes 0, cortas 13]
+  1000      - |   0.99292     SI |       11216       11212       3038 |   3.69x   3.69x |   14774  [desbordes 0, cortas 13]
+  grafo mst3_nc50_cs1000_threads12 (construido con 12 hilos)
+
+=== ParHCNNG (grafo cargado en 3.5 s) ===
+    Ls  visit |    recall   =CPU |  QPS kernel   QPS total    QPS CPU |  x kern x total |  comp/q
+    10      3 |   0.01185     SI |     2014019     1910198     436375 |   4.62x   4.38x |     263
+    10      5 |   0.13746     SI |     1164280     1119923     262425 |   4.44x   4.27x |     420
+    10      8 |   0.44851     SI |      712339      698088     170312 |   4.18x   4.10x |     635
+    10     12 |   0.66453     SI |      483019      477043     125052 |   3.86x   3.81x |     891
+    10     15 |   0.73781     SI |      397112      392965     114576 |   3.47x   3.43x |    1060
+    15      - |   0.83361     SI |      270674      268543      87993 |   3.08x   3.05x |    1490  [desbordes 0, cortas 6]
+    20      - |   0.85814     SI |      222971      221537      73416 |   3.04x   3.02x |    1780  [desbordes 0, cortas 6]
+    30      - |   0.88348     SI |      164817      163871      54273 |   3.04x   3.02x |    2364  [desbordes 0, cortas 6]
+    40      - |   0.89566     SI |      130602      130168      43481 |   3.00x   2.99x |    2953  [desbordes 0, cortas 6]
+    50      - |   0.90173     SI |      107577      107189      35552 |   3.03x   3.01x |    3542  [desbordes 0, cortas 6]
+    60      - |   0.90505     SI |       92164       91962      29717 |   3.10x   3.09x |    4132  [desbordes 0, cortas 6]
+    75      - |   0.94160     SI |       65822       65700      25060 |   2.63x   2.62x |    4771  [desbordes 0, cortas 6]
+   100      - |   0.96421     SI |       48193       48117      19936 |   2.42x   2.41x |    5788  [desbordes 0, cortas 6]
+   150      - |   0.97931     SI |       32518       32480      13596 |   2.39x   2.39x |    7687  [desbordes 0, cortas 6]
+   200      - |   0.98708     SI |       24728       24709      10509 |   2.35x   2.35x |    9197  [desbordes 0, cortas 6]
+   400      - |   0.99495     SI |       14134       14127       5123 |   2.76x   2.76x |   13868  [desbordes 0, cortas 6]
+   500      - |   0.99570     SI |       11811       11807       4651 |   2.54x   2.54x |   15877  [desbordes 0, cortas 6]
+  1000      - |   0.99781     SI |        7356        7354       2115 |   3.48x   3.48x |   21532  [desbordes 0, cortas 6]
+  grafo mxd60_nc10_cs1000_alpha1.2_delta0.05_threads12 (construido con 12 hilos)
+
+=== ParPyNNDescent (grafo cargado en 2.6 s) ===
+    Ls  visit |    recall   =CPU |  QPS kernel   QPS total    QPS CPU |  x kern x total |  comp/q
+    10      3 |   0.00382     SI |     1551114     1453575     783778 |   1.98x   1.85x |     163
+    10      5 |   0.05020     SI |     1900611     1812023     544754 |   3.49x   3.33x |     254
+    10      8 |   0.26336     SI |     1110590     1080467     347192 |   3.20x   3.11x |     387
+    10     12 |   0.53313     SI |      742836      728762     246750 |   3.01x   2.95x |     548
+    10     15 |   0.65202     SI |      604874      594742     207245 |   2.92x   2.87x |     656
+    15      - |   0.82517     SI |      385908      381274     141866 |   2.72x   2.69x |     972  [desbordes 0, cortas 8]
+    20      - |   0.85871     SI |      319780      317259     119694 |   2.67x   2.65x |    1142  [desbordes 0, cortas 8]
+    30      - |   0.89827     SI |      243269      241456      92383 |   2.63x   2.61x |    1480  [desbordes 0, cortas 8]
+    40      - |   0.91999     SI |      194607      193351      72518 |   2.68x   2.67x |    1819  [desbordes 0, cortas 8]
+    50      - |   0.93422     SI |      161778      161103      61800 |   2.62x   2.61x |    2159  [desbordes 0, cortas 8]
+    60      - |   0.94484     SI |      139120      138531      52117 |   2.67x   2.66x |    2502  [desbordes 0, cortas 8]
+    75      - |   0.95495     SI |      107874      107561      44258 |   2.44x   2.43x |    2821  [desbordes 0, cortas 8]
+   100      - |   0.96656     SI |       82854       82605      34364 |   2.41x   2.40x |    3374  [desbordes 0, cortas 8]
+   150      - |   0.97771     SI |       56031       55951      24040 |   2.33x   2.33x |    4432  [desbordes 0, cortas 8]
+   200      - |   0.98306     SI |       42103       42053      18253 |   2.31x   2.30x |    5301  [desbordes 0, cortas 8]
+   400      - |   0.99115     SI |       22269       22251       9131 |   2.44x   2.44x |    8053  [desbordes 0, cortas 8]
+   500      - |   0.99273     SI |       21020       21006       7368 |   2.85x   2.85x |    9207  [desbordes 0, cortas 8]
+  1000      - |   0.99561     SI |       12309       12305       3332 |   3.69x   3.69x |   12736  [desbordes 0, cortas 8]
+  grafo m32_efc128_ml0.36_alpha0.83_threads12 (construido con 12 hilos)
+
+=== ParHNSW (grafo cargado en 3.5 s) ===
+    Ls  visit |    recall   =CPU |  QPS kernel   QPS total    QPS CPU |  x kern x total |  comp/q
+    10      3 |   0.34479     SI |     1511184     1461817     132515 |  11.40x  11.03x |     387  [desbordes 0, cortas 1]
+    10      5 |   0.48038     SI |     1344157     1299791      97406 |  13.80x  13.34x |     484
+    10      8 |   0.60335     SI |     1008073      986181      71076 |  14.18x  13.88x |     627
+    10     12 |   0.69393     SI |      786339      768344      54571 |  14.41x  14.08x |     789
+    10     15 |   0.72272     SI |      735187      719596      57717 |  12.74x  12.47x |     837
+    15      - |   0.79486     SI |      526074      518958      42523 |  12.37x  12.20x |    1121
+    20      - |   0.82687     SI |      435845      430143      35418 |  12.31x  12.14x |    1245
+    30      - |   0.86657     SI |      321303      318502      26017 |  12.35x  12.24x |    1673
+    40      - |   0.89072     SI |      225510      224580      21360 |  10.56x  10.51x |    1863
+    50      - |   0.90642     SI |      187766      186559      17853 |  10.52x  10.45x |    2222
+    60      - |   0.91741     SI |      160868      160258      15184 |  10.59x  10.55x |    2584
+    75      - |   0.92980     SI |       99839       99549      12987 |   7.69x   7.67x |    2791
+   100      - |   0.94289     SI |       79995       79770      10226 |   7.82x   7.80x |    3534
+   150      - |   0.95824     SI |       51080       50972       7350 |   6.95x   6.93x |    4594
+   200      - |   0.96584     SI |       40816       40762       5753 |   7.09x   7.08x |    5811
+   400      - |   0.97718     SI |       19898       19889       3125 |   6.37x   6.36x |    9646
+   500      - |   0.97981     SI |       16773       16767       2602 |   6.45x   6.44x |   11478
+  1000      - |   0.98564     SI |        6023        6022       1348 |   4.47x   4.47x |   18489
+
+configuraciones con recall identico a la CPU: 72 de 72
+configuraciones deterministas (calentamiento == ultima corrida): 72 de 72
+resultados en resultados\comparacion1_gpu.csv y resultados\vecinos\
+siguiente: reporte_comparacion1.py (validacion vecino por vecino, tablas y graficas)
+
+[4/4] Validacion vecino por vecino y reporte (WSL) ...
+Traceback (most recent call last):
+  File "/mnt/c/Users/Usuario/Desktop/Uni/Paralela/cuda/reporte_comparacion1.py", line 389, in <module>
+    main()
+  File "/mnt/c/Users/Usuario/Desktop/Uni/Paralela/cuda/reporte_comparacion1.py", line 363, in main
+    graficar(tabla, a.salida)
+  File "/mnt/c/Users/Usuario/Desktop/Uni/Paralela/cuda/reporte_comparacion1.py", line 291, in graficar
+    eje.plot(c.recall_cpu, c.qps_cpu, "o-", label="CPU (ParlayANN)")
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/matplotlib/axes/_axes.py", line 1743, in plot
+    lines = [*self._get_lines(*args, data=data, **kwargs)]
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/matplotlib/axes/_base.py", line 273, in __call__
+    yield from self._plot_args(this, kwargs)
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/matplotlib/axes/_base.py", line 388, in _plot_args
+    x = _check_1d(tup[0])
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/matplotlib/cbook/__init__.py", line 1318, in _check_1d
+    ndim = x[:, None].ndim
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/pandas/core/series.py", line 1038, in __getitem__
+    return self._get_with(key)
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/pandas/core/series.py", line 1053, in _get_with
+    return self._get_values_tuple(key)
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/pandas/core/series.py", line 1087, in _get_values_tuple
+    disallow_ndim_indexing(result)
+  File "/home/usuario/parlay/venv/lib/python3.10/site-packages/pandas/core/indexers/utils.py", line 343, in disallow_ndim_indexing
+    raise ValueError(
+ValueError: Multi-dimensional indexing (e.g. `obj[:, None]`) is no longer supported. Convert to a numpy array before indexing instead.
+ERROR en reporte_comparacion1.py

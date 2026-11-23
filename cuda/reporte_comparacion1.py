@@ -46,6 +46,9 @@ def argumentos():
         help="carpeta con los hdf5 de la CPU (una subcarpeta por algoritmo)")
     p.add_argument("--gpu", default=os.path.join(AQUI, "resultados", "comparacion1_gpu.csv"))
     p.add_argument("--vecinos", default=os.path.join(AQUI, "resultados", "vecinos"))
+    p.add_argument("--datos", default=os.path.expanduser(
+        "~/parlay/big-ann-benchmarks/data/MSSPACEV1B"),
+        help="vectores base y consultas, para comparar DISTANCIAS cuando los ids difieren")
     p.add_argument("--hilos", type=int, default=None,
                    help="hilos de la corrida de CPU a usar (por defecto: la de mas hilos)")
     p.add_argument("--salida", default=os.path.join(AQUI, "resultados", "comparacion1"))
@@ -104,10 +107,35 @@ def leer_bin(ruta):
     return ids
 
 
+def cargar_vectores(dir_datos):
+    """base y consultas int8 (formato .i8bin). None si no estan (se salta esa metrica)"""
+    rb = os.path.join(dir_datos, "spacev1b_base.i8bin.crop_nb_1000000")
+    rq = os.path.join(dir_datos, "query.i8bin")
+    if not (os.path.exists(rb) and os.path.exists(rq)):
+        print(f"  (no encuentro los vectores en {dir_datos}: no se comparan distancias)")
+        return None, None
+    base = np.fromfile(rb, dtype=np.int8, offset=8).reshape(-1, 100)
+    q = np.fromfile(rq, dtype=np.int8, offset=8).reshape(-1, 100)
+    return base, q
+
+
+def mismas_distancias(filas, vc, vg, base, Q):
+    """para las consultas en 'filas': los 10 vecinos de CPU y GPU, aunque tengan ids
+    distintos, ¿estan a las MISMAS distancias? (empates). Devuelve cuantas si."""
+    total = 0
+    for ini in range(0, len(filas), 4000):
+        f = filas[ini:ini + 4000]
+        qq = Q[f].astype(np.int32)[:, None, :]
+        dc = ((base[vc[f]].astype(np.int32) - qq) ** 2).sum(-1)
+        dg = ((base[vg[f]].astype(np.int32) - qq) ** 2).sum(-1)
+        total += int(np.all(np.sort(dc, 1) == np.sort(dg, 1), axis=1).sum())
+    return total
+
+
 # ---------------------------------------------------------------------------
 # PASO 4: validacion vecino por vecino
 # ---------------------------------------------------------------------------
-def validar(vecinos_cpu, dir_vecinos):
+def validar(vecinos_cpu, dir_vecinos, base=None, Q=None):
     filas = []
     for (algo, Ls, visit), vc in sorted(vecinos_cpu.items()):
         nombre = f"{algo}_Ls_{Ls}" + (f"_visit_{visit}" if visit >= 0 else "") + ".bin"
@@ -131,10 +159,19 @@ def validar(vecinos_cpu, dir_vecinos):
         faltan = int((~esta)[validas].sum())
 
         n = int(validas.sum())
+        # cuando los ids difieren: ¿es solo un empate de distancia?
+        distintas = np.where(validas & ~igual_conjunto)[0]
+        if base is not None and len(distintas) > 0:
+            iguales_dist = int(igual_conjunto.sum()) + mismas_distancias(distintas, vc, vg, base, Q)
+        elif base is not None:
+            iguales_dist = int(igual_conjunto.sum())
+        else:
+            iguales_dist = np.nan
         filas.append(dict(algoritmo=algo, Ls=Ls, visit=visit, consultas=n, cortas=int(cortas.sum()),
                           iguales_orden=int(igual_orden.sum()),
                           iguales_conjunto=int(igual_conjunto.sum()),
                           pct_iguales_conjunto=100.0 * igual_conjunto.sum() / max(n, 1),
+                          iguales_distancias=iguales_dist,
                           ids_distintos=faltan))
     return pd.DataFrame(filas)
 
@@ -201,8 +238,9 @@ def escribir_resumen(ruta, tabla, resumen, valid, hilos):
 
     L.append("\n## Validacion (GPU vs CPU)\n")
     L.append("| Algoritmo | Configs con recall identico | Consultas con los mismos 10 vecinos | "
-             "Ids distintos | Consultas cortas | Configs deterministas |")
-    L.append("|---|---:|---:|---:|---:|---:|")
+             "Consultas con las mismas 10 distancias | Ids distintos | Consultas cortas | "
+             "Configs deterministas |")
+    L.append("|---|---:|---:|---:|---:|---:|---:|")
     for algo in ALGOS:
         t = tabla[tabla.algoritmo == algo]
         v = valid[valid.algoritmo == algo] if not valid.empty else valid
@@ -212,10 +250,14 @@ def escribir_resumen(ruta, tabla, resumen, valid, hilos):
         det = "-" if t.determinista.isna().all() else f"{int(t.determinista.sum())} de {len(t)}"
         if not v.empty:
             pct = 100.0 * v.iguales_conjunto.sum() / max(v.consultas.sum(), 1)
-            L.append(f"| {algo} | {iguales} de {len(t)} | {pct:.4f} % | {int(v.ids_distintos.sum())} | "
-                     f"{int(v.cortas.sum())} | {det} |")
+            pct_d = ("-" if v.iguales_distancias.isna().all() else
+                     f"{100.0 * v.iguales_distancias.sum() / max(v.consultas.sum(), 1):.4f} %")
+            L.append(f"| {algo} | {iguales} de {len(t)} | {pct:.4f} % | {pct_d} | "
+                     f"{int(v.ids_distintos.sum())} | {int(v.cortas.sum())} | {det} |")
         else:
-            L.append(f"| {algo} | {iguales} de {len(t)} | - | - | - | {det} |")
+            L.append(f"| {algo} | {iguales} de {len(t)} | - | - | - | - | {det} |")
+    L.append("\n*Mismas 10 distancias*: aunque algun id sea distinto, los 10 vecinos de la GPU")
+    L.append("estan a exactamente las mismas distancias que los de la CPU (empates).")
     L.append("\n*Determinista*: la corrida de calentamiento y la ultima corrida devolvieron")
     L.append("exactamente los mismos vecinos.")
     L.append("\n*Consultas cortas*: la frontera termino con menos de 10 elementos; ahi la CPU")
@@ -246,9 +288,12 @@ def graficar(tabla, carpeta):
             continue
         c = t.sort_values("recall_cpu")
         g = t.sort_values("recall_gpu")
-        eje.plot(c.recall_cpu, c.qps_cpu, "o-", label="CPU (ParlayANN)")
-        eje.plot(g.recall_gpu, g.qps_gpu_total, "s-", label="GPU punta a punta")
-        eje.plot(g.recall_gpu, g.qps_gpu_kernel, "^--", label="GPU solo kernel", alpha=0.7)
+        # .to_numpy(): matplotlib 3.3 no acepta columnas de pandas 2.x directamente
+        eje.plot(c.recall_cpu.to_numpy(), c.qps_cpu.to_numpy(), "o-", label="CPU (ParlayANN)")
+        eje.plot(g.recall_gpu.to_numpy(), g.qps_gpu_total.to_numpy(), "s-",
+                 label="GPU punta a punta")
+        eje.plot(g.recall_gpu.to_numpy(), g.qps_gpu_kernel.to_numpy(), "^--",
+                 label="GPU solo kernel", alpha=0.7)
         eje.set_yscale("log")
         eje.set_title(algo)
         eje.set_xlabel("recall@10")
@@ -266,8 +311,9 @@ def graficar(tabla, carpeta):
         if t.empty:
             eje.set_visible(False)
             continue
-        eje.plot(t.recall_cpu, t.x_total, "s-", label="punta a punta")
-        eje.plot(t.recall_cpu, t.x_kernel, "^--", label="solo kernel", alpha=0.7)
+        eje.plot(t.recall_cpu.to_numpy(), t.x_total.to_numpy(), "s-", label="punta a punta")
+        eje.plot(t.recall_cpu.to_numpy(), t.x_kernel.to_numpy(), "^--", label="solo kernel",
+                 alpha=0.7)
         eje.axhline(1.0, color="gray", lw=1)
         eje.set_title(algo)
         eje.set_xlabel("recall@10 (configuracion)")
@@ -312,7 +358,8 @@ def main():
     tabla.to_csv(os.path.join(a.salida, "configuraciones.csv"), index=False)
 
     print("PASO 4: validacion vecino por vecino")
-    valid = validar(vecinos_cpu, a.vecinos)
+    base, Q = cargar_vectores(a.datos)
+    valid = validar(vecinos_cpu, a.vecinos, base, Q)
     valid.to_csv(os.path.join(a.salida, "validacion.csv"), index=False)
 
     resumen = resumen_por_algoritmo(tabla)
@@ -335,6 +382,9 @@ def main():
         if not v.empty:
             pct = 100.0 * v.iguales_conjunto.sum() / max(v.consultas.sum(), 1)
             txt += f" | mismos 10 vecinos en {pct:.4f} % de las consultas | ids distintos {int(v.ids_distintos.sum())}"
+            if not v.iguales_distancias.isna().all():
+                pct_d = 100.0 * v.iguales_distancias.sum() / max(v.consultas.sum(), 1)
+                txt += f" | mismas distancias {pct_d:.4f} %"
         print(txt)
     print(f"\nListo: {a.salida}/ (resumen.md, configuraciones.csv, validacion.csv, recall_qps.png, speedup.png)")
 

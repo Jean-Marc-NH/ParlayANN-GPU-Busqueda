@@ -1,0 +1,69 @@
+﻿GPU: NVIDIA GeForce RTX 3050 6GB Laptop GPU
+base 1000000, consultas 29316, gt k=100
+
+=== DiskANN (gradoMax 64) ===
+    Ls  visit |   rec GPU   rec CPU  igual |    QPS GPU    QPS CPU  speedup |   comp/q
+    10      3 |   0.00644       (=)     SI |    1634443     760404   2.149x |      185
+    10      5 |   0.07577       (=)     SI |     824138     429039   1.920x |      295
+    10      8 |   0.33140       (=)     SI |     481976     250160   1.926x |      457
+    10     12 |   0.59666       (=)     SI |     315755     182477   1.730x |      657
+    10     15 |   0.69930       (=)     SI |     255508     160539   1.591x |      792
+    15      - |   0.83848       (=)     SI |     163307     108795   1.501x |     1164  [desbordes 0, cortas 7]
+    20      - |   0.86970       (=)     SI |     135431      90429   1.497x |     1385  [desbordes 0, cortas 13]
+    30      - |   0.90488       (=)     SI |     101208      74473   1.358x |     1823  [desbordes 0, cortas 13]
+    40      - |   0.92431       (=)     SI |      80413      59601   1.349x |     2260  [desbordes 0, cortas 13]
+    50      - |   0.93678       (=)     SI |      66986      49390   1.356x |     2699  [desbordes 0, cortas 13]
+    60      - |   0.94540       (=)     SI |      57430      41574   1.381x |     3136  [desbordes 0, cortas 13]
+    75      - |   0.95460       (=)     SI |      42856      32079   1.335x |     3535  [desbordes 0, cortas 13]
+   100      - |   0.96421       (=)     SI |      33323      28461   1.170x |     4211  [desbordes 0, cortas 13]
+   150      - |   0.97410       (=)     SI |      24181      20028   1.207x |     5489  [desbordes 0, cortas 13]
+   200      - |   0.97921       (=)     SI |      18039      15823   1.140x |     6500  [desbordes 0, cortas 13]
+   400      - |   0.98741       (=)     SI |      10675       7919   1.347x |     9641  [desbordes 0, cortas 13]
+   500      - |   0.98919       (=)     SI |       8823       6552   1.346x |    10956  [desbordes 0, cortas 13]
+  1000      - |   0.99292       (=)     SI |       4570       3037   1.504x |    14774  [desbordes 0, cortas 13]
+
+=== HCNNG (gradoMax 150) ===
+    Ls  visit |   rec GPU   rec CPU  igual |    QPS GPU    QPS CPU  speedup |   comp/q
+    10      3 |   0.01185       (=)     SI |     774906     436375   1.775x |      263
+    10      5 |   0.13746       (=)     SI |     428077     262425   1.631x |      420
+    10      8 |   0.44851       (=)     SI |     263341     170312   1.546x |      635
+    10     12 |   0.66453       (=)     SI |     177893     125052   1.422x |      891
+    10     15 |   0.73781       (=)     SI |     146085     114575   1.275x |     1060
+    15      - |   0.83361       (=)     SI |      99999      87992   1.136x |     1490  [desbordes 0, cortas 6]
+    20      - |   0.85814       (=)     SI |      82258      73415   1.120x |     1780  [desbordes 0, cortas 6]
+    30      - |   0.88348       (=)     SI |      60661      54272   1.117x |     2364  [desbordes 0, cortas 6]
+    40      - |   0.89566       (=)     SI |      47904      43481   1.101x |     2953  [desbordes 0, cortas 6]
+    50      - |   0.90173       (=)     SI |      39698      35552   1.116x |     3542  [desbordes 0, cortas 6]
+    60      - |   0.90505       (=)     SI |      32542      29716   1.095x |     4132  [desbordes 0, cortas 6]
+    75      - |   0.94160       (=)     SI |      23074      25059   0.920x |     4771  [desbordes 0, cortas 6]
+   100      - |   0.96421       (=)     SI |      17865      19936   0.896x |     5788  [desbordes 0, cortas 6]
+   150      - |   0.97931       (=)     SI |      11829      13595   0.870x |     7687  [desbordes 0, cortas 6]
+   200      - |   0.98708       (=)     SI |       9245      10509   0.879x |     9197  [desbordes 0, cortas 6]
+   400      - |   0.99495       (=)     SI |       4924       5122   0.961x |    13868  [desbordes 0, cortas 6]
+   500      - |   0.99570       (=)     SI |       3970       4650   0.853x |    15877  [desbordes 0, cortas 6]
+  1000      - |   0.99781       (=)     SI |       2548       2114   1.204x |    21532  [desbordes 0, cortas 6]
+
+=== PyNNDescent (gradoMax 60) ===
+    Ls  visit |   rec GPU   rec CPU  igual |    QPS GPU    QPS CPU  speedup |   comp/q
+    10      3 |   0.00382       (=)     SI |    1851446     783777   2.362x |      163
+    10      5 |   0.05020       (=)     SI |     940256     544753   1.726x |      254
+    10      8 |   0.26336       (=)     SI |     550122     347192   1.584x |      387
+    10     12 |   0.53313       (=)     SI |     364204     246749   1.476x |      548
+    10     15 |   0.65202       (=)     SI |     295811     207245   1.427x |      656
+    15      - |   0.82517       (=)     SI |     189176     141866   1.333x |      972  [desbordes 0, cortas 8]
+    20      - |   0.85871       (=)     SI |     158222     119693   1.321x |     1142  [desbordes 0, cortas 8]
+    30      - |   0.89827       (=)     SI |     116695      92383   1.263x |     1480  [desbordes 0, cortas 8]
+    40      - |   0.91999       (=)     SI |      93216      72518   1.285x |     1819  [desbordes 0, cortas 8]
+    50      - |   0.93422       (=)     SI |      77981      61799   1.261x |     2159  [desbordes 0, cortas 8]
+    60      - |   0.94484       (=)     SI |      67112      52117   1.287x |     2502  [desbordes 0, cortas 8]
+    75      - |   0.95495       (=)     SI |      50057      44257   1.131x |     2821  [desbordes 0, cortas 8]
+   100      - |   0.96656       (=)     SI |      38909      34364   1.132x |     3374  [desbordes 0, cortas 8]
+   150      - |   0.97771       (=)     SI |      28084      24039   1.168x |     4432  [desbordes 0, cortas 8]
+   200      - |   0.98306       (=)     SI |      20303      18253   1.112x |     5301  [desbordes 0, cortas 8]
+   400      - |   0.99115       (=)     SI |      11870       9131   1.299x |     8053  [desbordes 0, cortas 8]
+   500      - |   0.99273       (=)     SI |       9694       7368   1.315x |     9207  [desbordes 0, cortas 8]
+  1000      - |   0.99561       (=)     SI |       4993       3332   1.498x |    12736  [desbordes 0, cortas 8]
+
+configuraciones con recall identico a la CPU: 54 de 54
+resultados en resultados\paso2_busqueda.csv
+EXIT=0

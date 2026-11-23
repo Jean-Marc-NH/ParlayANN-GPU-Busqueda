@@ -41,8 +41,8 @@ void leerPerfil(unsigned long long* salida);
 // se encarga de la memoria auxiliar y de lanzar el kernel
 struct BuscadorGPU {
     // memoria global auxiliar, un pedazo por cada warp que corre a la vez
-    unsigned long long* filtro = nullptr;      // filtro "ya visto" (igual al de ParlayANN), con epoca
-    unsigned long long* visClaves = nullptr;   // tabla de visitados: (epoca, id)
+    uint32_t* filtro = nullptr;      // filtro hash de "ya visto" (igual al de ParlayANN)
+    uint32_t* visClaves = nullptr;   // tabla de visitados: id
     int* visCuentas = nullptr;       // tabla de visitados: cuantas veces se visito
 
     // salida
@@ -53,7 +53,6 @@ struct BuscadorGPU {
 
     int bitsFiltro = 0;
     uint32_t capVis = 0;
-    uint32_t epocaBase = 0;          // sube en cada lanzamiento para no repetir epocas
     int warpsPorBloque = 0;
     int bloques = 0;
     size_t bytesCompartida = 0;
