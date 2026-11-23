@@ -1,37 +1,3 @@
-// busqueda.cu
-// kernel de beam search: UN WARP (32 hilos) RESUELVE UNA CONSULTA
-//
-// la idea es copiar paso a paso beam_search() de ParlayANN para que la GPU
-// devuelva EXACTAMENTE los mismos vecinos que la CPU. Por eso hay cosas que
-// parecen raras pero estan a proposito (marcadas con "IGUAL QUE PARLAYANN").
-//
-// estado de cada consulta:
-//   frontera : los mejores Ls puntos encontrados, ordenados por (distancia, id)
-//   visitados: cuantas veces se visito cada id (tabla hash exacta)
-//   filtro   : filtro hash "ya lo vi" con perdidas, igual al de ParlayANN
-//
-// en cada vuelta:
-//   1. tomar el primer punto de la frontera sin visitar y marcarlo
-//   2. leer sus vecinos, descartar los ya vistos (filtro) y calcular distancias
-//   3. ordenar los candidatos y mezclarlos con la frontera (set_union)
-//   4. recortar a Ls y aplicar el cut (1.35 * distancia del k-esimo)
-//   5. buscar el siguiente sin visitar; si no hay, se termina
-//
-// VERSION 2 (optimizada). Cambios respecto a la version 1, medidos con el perfil:
-//   - distancias en grupos de 8 hilos por vector (lectura de 128 bytes de una vez)
-//     y 4 distancias por hilo en vuelo -> antes era 1 hilo por distancia
-//   - la fila de vecinos y las casillas del filtro se leen TODAS de una vez
-//     (antes: 2 viajes a memoria por cada trozo de 32 vecinos)
-//   - menos memoria compartida por warp -> mas warps por SM
-//
-// INTENTO DESCARTADO (version 3): poner EPOCA en cada casilla del filtro y de los
-//   visitados para no limpiarlos en cada consulta. Daba el mismo resultado pero fue
-//   MAS LENTO (prueba A/B en RTX 3050, DiskANN: Ls=75 141k -> 98k QPS, Ls=500 igual).
-//   Motivo: limpiar ESCRIBE lineas completas que quedan en la cache L2, y despues las
-//   lecturas del filtro salen de ahi; con epocas cada lectura iba a memoria principal y
-//   las casillas pasaban de 4 a 8 bytes. Por eso aqui SE LIMPIA en cada consulta.
-//   (el kernel de HNSW si usa epocas: ahi hay una tabla por nivel y limpiar es mas caro)
-
 #include <algorithm>
 #include <climits>
 #include <cmath>
