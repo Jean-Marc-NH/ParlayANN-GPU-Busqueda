@@ -1,0 +1,8 @@
+fecha: 2026-11-23T14:11:40-05:00
+dataset: msspacev-1M   hilos: 24   runs: 5
+algoritmos: ParDiskANN ParHCNNG ParPyNNDescent ParHNSW
+cpu: 13th Gen Intel(R) Core(TM) i7-13700HX
+nproc (WSL): 24
+ram (WSL): 7.6Gi
+ParlayANN commit: 45587ba
+big-ann-benchmarks: ppopp-artifact-final
