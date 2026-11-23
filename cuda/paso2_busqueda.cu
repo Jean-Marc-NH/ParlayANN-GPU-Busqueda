@@ -16,86 +16,9 @@
 #include <chrono>
 #include <cmath>
 #include <filesystem>
-#include <fstream>
-#include <map>
-#include <sstream>
 
 #include "busqueda.cuh"
-
-// resultados de la corrida de CPU en esta misma PC (12 hilos)
-const std::string CSV_CPU_DEFAULT =
-    "..\\cpu_baseline\\results\\msspacev-1M_t12_20261111_162450\\all_results.csv";
-
-struct FilaCPU {
-    double recall;
-    double qps;
-};
-
-// lee all_results.csv (data_export.py) y agrupa por algoritmo
-static std::map<std::string, std::vector<FilaCPU>> leerCsvCPU(const std::string& ruta) {
-    std::map<std::string, std::vector<FilaCPU>> res;
-    std::ifstream f(ruta);
-    if (!f) {
-        printf("  (no se encontro el csv de CPU: %s, no se compara)\n", ruta.c_str());
-        return res;
-    }
-    std::string linea;
-    std::getline(f, linea);
-    std::vector<std::string> cols;
-    {
-        std::stringstream ss(linea);
-        std::string c;
-        while (std::getline(ss, c, ',')) cols.push_back(c);
-    }
-    auto col = [&](const std::string& nombre) {
-        for (size_t i = 0; i < cols.size(); i++)
-            if (cols[i] == nombre) return (int)i;
-        return -1;
-    };
-    int cAlgo = col("algorithm"), cData = col("dataset"), cHilos = col("threads"),
-        cQps = col("qps"), cRec = col("recall/ap");
-
-    while (std::getline(f, linea)) {
-        std::vector<std::string> v;
-        std::stringstream ss(linea);
-        std::string c;
-        while (std::getline(ss, c, ',')) v.push_back(c);
-        if ((int)v.size() < (int)cols.size()) continue;
-        if (v[cData] != "msspacev-1M" || v[cHilos] != "12") continue;
-        res[v[cAlgo]].push_back({strtod(v[cRec].c_str(), nullptr), strtod(v[cQps].c_str(), nullptr)});
-    }
-    return res;
-}
-
-// RECALL IGUAL QUE big-ann-benchmarks (benchmark/plotting/metrics.py)
-//   compute_recall_with_distance_ties: se cuentan como correctos tambien los
-//   puntos del GT que empatan en distancia con el k-esimo
-//   recall = promedio de |set(gt[:fin]) & set(resultado)| / k
-static double calcularRecall(const GroundTruth& gt, const std::vector<uint32_t>& ids, int k) {
-    long long total = 0;
-    for (uint32_t q = 0; q < gt.nq; q++) {
-        const uint32_t* verdad = &gt.ids[(size_t)q * gt.k];
-        const float* dVerdad = &gt.dists[(size_t)q * gt.k];
-
-        int fin = (int)gt.k;
-        if ((int)gt.k != k) {
-            float ref = dVerdad[k - 1];
-            for (int i = k; i < (int)gt.k; i++)
-                if (!(fabsf(ref - dVerdad[i]) < 1e-6f)) {
-                    fin = i;
-                    break;
-                }
-        }
-
-        // ids distintos devueltos (set): si la GPU repite un id cuenta una vez
-        std::vector<uint32_t> mios(ids.begin() + (size_t)q * k, ids.begin() + (size_t)(q + 1) * k);
-        std::sort(mios.begin(), mios.end());
-        mios.erase(std::unique(mios.begin(), mios.end()), mios.end());
-        for (uint32_t x : mios)
-            if (std::find(verdad, verdad + fin, x) != verdad + fin) total++;
-    }
-    return (double)total / gt.nq / k;
-}
+#include "evaluacion.h"
 
 struct Resultado {
     int Ls;
@@ -141,7 +64,7 @@ int main(int argc, char** argv) {
         {50, -1}, {60, -1}, {75, -1}, {100, -1}, {150, -1}, {200, -1}, {400, -1}, {500, -1},
         {1000, -1}};
 
-    struct { const char* nombre; const char* nombreCPU; std::string archivo; } grafos[] = {
+    struct { const char* nombre; const char* nombreCPU; UbicacionGrafo archivo; } grafos[] = {
         {"DiskANN", "ParDiskANN", GRAFO_DISKANN},
         {"HCNNG", "ParHCNNG", GRAFO_HCNNG},
         {"PyNNDescent", "ParPyNNDescent", GRAFO_PYNN},
@@ -162,7 +85,7 @@ int main(int argc, char** argv) {
 
     for (auto& gr : grafos) {
         if (!soloAlgo.empty() && soloAlgo != gr.nombre) continue;
-        GrafoHost g = leerGrafoParlay(carpeta + gr.archivo);
+        GrafoHost g = leerGrafoParlay(rutaGrafo(carpeta, gr.archivo));
         GrafoGPU gGPU;
         subirGrafo(g, gGPU);
         auto& cpu = filasCPU[gr.nombreCPU];

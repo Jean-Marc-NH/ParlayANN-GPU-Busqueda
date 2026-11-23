@@ -3,6 +3,40 @@
 
 #include "lectores.h"
 
+#include <filesystem>
+
+std::string rutaGrafo(const std::string& carpetaDatos, const UbicacionGrafo& g) {
+    namespace fs = std::filesystem;
+    fs::path dir = fs::path(carpetaDatos) / g.carpeta;
+    const std::string prefijo = g.prefijo;
+    int mejorHilos = -1;
+    std::string mejor;
+    std::error_code ec;
+    // cada indice es una carpeta <prefijo><hilos> con un archivo del mismo nombre adentro
+    for (const auto& e : fs::directory_iterator(dir, ec)) {
+        if (!e.is_directory()) continue;
+        std::string nombre = e.path().filename().string();
+        if (nombre.rfind(prefijo, 0) != 0) continue;
+        std::string resto = nombre.substr(prefijo.size());
+        if (resto.empty() || resto.find_first_not_of("0123456789") != std::string::npos) continue;
+        fs::path archivo = e.path() / nombre;
+        if (!fs::exists(archivo)) continue;
+        int hilos = atoi(resto.c_str());
+        if (hilos > mejorHilos) {
+            mejorHilos = hilos;
+            mejor = archivo.string();
+        }
+    }
+    if (mejor.empty()) {
+        fprintf(stderr, "No encuentro el grafo %s<hilos> en %s\n"
+                        "  (primero hay que correr run_benchmark.sh msspacev-1M en WSL)\n",
+                g.prefijo, dir.string().c_str());
+        exit(1);
+    }
+    printf("  grafo %s%d (construido con %d hilos)\n", g.prefijo, mejorHilos, mejorHilos);
+    return mejor;
+}
+
 #ifdef _MSC_VER
 #define fseek64 _fseeki64
 #define ftell64 _ftelli64

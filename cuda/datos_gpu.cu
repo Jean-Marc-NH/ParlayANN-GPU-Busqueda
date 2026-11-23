@@ -39,6 +39,22 @@ void subirVectores(const VectoresHost& host, VectoresGPU& gpu) {
     CHECK_CUDA(cudaDeviceSynchronize());
 }
 
+void rellenarVectores(const VectoresHost& host, int8_t* destino) {
+    memset(destino, 0, (size_t)host.n * DIM_PAD);
+    for (uint32_t i = 0; i < host.n; i++)
+        memcpy(destino + (size_t)i * DIM_PAD, host.vec(i), host.dim);
+}
+
+void copiarVectoresAsync(const int8_t* origen, VectoresGPU& gpu, cudaStream_t stream) {
+    CHECK_CUDA(cudaMemcpyAsync(gpu.palabras, origen, (size_t)gpu.n * DIM_PAD,
+                               cudaMemcpyHostToDevice, stream));
+    int hilosPorBloque = 256;
+    uint64_t hilosTotales = (uint64_t)gpu.n * 32;
+    int bloques = (int)((hilosTotales + hilosPorBloque - 1) / hilosPorBloque);
+    kernelNormas<<<bloques, hilosPorBloque, 0, stream>>>(gpu.palabras, gpu.normas, gpu.n);
+    CHECK_CUDA(cudaGetLastError());
+}
+
 void liberarVectores(VectoresGPU& gpu) {
     cudaFree(gpu.palabras);
     cudaFree(gpu.normas);

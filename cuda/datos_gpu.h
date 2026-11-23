@@ -32,3 +32,10 @@ void liberarVectores(VectoresGPU& gpu);
 
 void subirGrafo(const GrafoHost& host, GrafoGPU& gpu);
 void liberarGrafo(GrafoGPU& gpu);
+
+// ---- para medir de punta a punta ----
+// copia los vectores rellenados a 128 bytes a "destino" (n * DIM_PAD bytes)
+void rellenarVectores(const VectoresHost& host, int8_t* destino);
+// copia (asincrono) vectores YA rellenados desde la CPU a la GPU y recalcula sus
+// normas. Para que la copia sea rapida "origen" debe ser memoria fijada (cudaMallocHost)
+void copiarVectoresAsync(const int8_t* origen, VectoresGPU& gpu, cudaStream_t stream);

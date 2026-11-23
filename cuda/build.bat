@@ -27,18 +27,34 @@ if errorlevel 1 (
 )
 
 echo Compilando paso2_busqueda.exe ...
-nvcc %FLAGS% -o paso2_busqueda.exe paso2_busqueda.cu busqueda.cu datos_gpu.cu lectores.cpp
+nvcc %FLAGS% -o paso2_busqueda.exe paso2_busqueda.cu busqueda.cu datos_gpu.cu lectores.cpp evaluacion.cpp
 if errorlevel 1 (
     echo ERROR al compilar paso2
     exit /b 1
 )
+
 rem misma busqueda pero midiendo ciclos por seccion del kernel (clock64)
 echo Compilando paso2_perfil.exe ...
-nvcc %FLAGS% -DPERFIL -o paso2_perfil.exe paso2_busqueda.cu busqueda.cu datos_gpu.cu lectores.cpp
+nvcc %FLAGS% -DPERFIL -o paso2_perfil.exe paso2_busqueda.cu busqueda.cu datos_gpu.cu lectores.cpp evaluacion.cpp
 if errorlevel 1 (
     echo ERROR al compilar paso2_perfil
     exit /b 1
 )
+
+echo Compilando paso3_hnsw.exe ...
+nvcc %FLAGS% -o paso3_hnsw.exe paso3_hnsw.cu busqueda_hnsw.cu hnsw_lector.cpp datos_gpu.cu lectores.cpp evaluacion.cpp
+if errorlevel 1 (
+    echo ERROR al compilar paso3
+    exit /b 1
+)
+
+echo Compilando comparacion1.exe ...
+nvcc %FLAGS% -o comparacion1.exe comparacion1.cu busqueda.cu busqueda_hnsw.cu hnsw_lector.cpp datos_gpu.cu lectores.cpp evaluacion.cpp
+if errorlevel 1 (
+    echo ERROR al compilar comparacion1
+    exit /b 1
+)
+
 rem microbenchmark de formas de calcular distancias (justifica la optimizacion)
 echo Compilando micro_distancias.exe ...
 nvcc %FLAGS% -o micro_distancias.exe micro_distancias.cu datos_gpu.cu lectores.cpp
@@ -46,4 +62,4 @@ if errorlevel 1 (
     echo ERROR al compilar micro_distancias
     exit /b 1
 )
-echo Listo: paso1_carga.exe, paso2_busqueda.exe, paso2_perfil.exe y micro_distancias.exe
+echo Listo: paso1_carga, paso2_busqueda, paso2_perfil, paso3_hnsw, comparacion1 y micro_distancias

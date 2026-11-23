@@ -64,6 +64,7 @@ __global__ void kGrupo(const int* base, const int* normas, const int* q, const i
 
 int main(int argc, char** argv) {
     std::string carpeta = (argc > 1) ? argv[1] : CARPETA_DATOS_DEFAULT;
+    if (carpeta.back() != '\\' && carpeta.back() != '/') carpeta += "\\";
     VectoresHost base = leerVectoresI8bin(carpeta + ARCH_BASE);
     VectoresHost consultas = leerVectoresI8bin(carpeta + ARCH_CONSULTAS);
     VectoresGPU baseGPU, qGPU;

@@ -31,15 +31,27 @@ const std::string ARCH_BASE      = "MSSPACEV1B\\spacev1b_base.i8bin.crop_nb_1000
 const std::string ARCH_CONSULTAS = "MSSPACEV1B\\query.i8bin";
 const std::string ARCH_GT        = "MSSPACEV1B\\msspacev-gt-1M";
 
-// grafos que construyo ParlayANN en CPU (corrida msspacev-1M con 12 hilos)
-// el de HNSW tiene otro formato, ese se lee en el paso 3
-const std::string GRAFO_DISKANN =
-    "indices\\vamana\\MSSPACEV1B-1000000\\R64_L128_alpha1.2_threads12\\R64_L128_alpha1.2_threads12";
-const std::string GRAFO_HCNNG =
-    "indices\\hcnng\\MSSPACEV1B-1000000\\mst3_nc50_cs1000_threads12\\mst3_nc50_cs1000_threads12";
-const std::string GRAFO_PYNN =
-    "indices\\pynndescent\\MSSPACEV1B-1000000\\mxd60_nc10_cs1000_alpha1.2_delta0.05_threads12\\"
-    "mxd60_nc10_cs1000_alpha1.2_delta0.05_threads12";
+// grafos que construyo ParlayANN en CPU (corrida msspacev-1M)
+// big-ann-benchmarks le pone al final del nombre los hilos con que se construyo
+// (..._threads12, ..._threads20). Por eso aqui va solo el COMIENZO del nombre y
+// rutaGrafo() busca el que existe; si hay varios, usa el de MAS hilos (la corrida
+// principal de esa maquina, la misma que usa reporte_comparacion1.py)
+// OJO: big-ann-benchmarks guarda el de HNSW dentro de la carpeta "vamana"
+struct UbicacionGrafo {
+    const char* carpeta;   // relativa a la carpeta "data"
+    const char* prefijo;   // nombre sin el numero de hilos
+};
+const UbicacionGrafo GRAFO_DISKANN = {"indices\\vamana\\MSSPACEV1B-1000000",
+                                      "R64_L128_alpha1.2_threads"};
+const UbicacionGrafo GRAFO_HNSW = {"indices\\vamana\\MSSPACEV1B-1000000",
+                                   "m32_efc128_ml0.36_alpha0.83_threads"};
+const UbicacionGrafo GRAFO_HCNNG = {"indices\\hcnng\\MSSPACEV1B-1000000",
+                                    "mst3_nc50_cs1000_threads"};
+const UbicacionGrafo GRAFO_PYNN = {"indices\\pynndescent\\MSSPACEV1B-1000000",
+                                   "mxd60_nc10_cs1000_alpha1.2_delta0.05_threads"};
+
+// ruta completa del archivo del grafo (ver lectores.cpp)
+std::string rutaGrafo(const std::string& carpetaDatos, const UbicacionGrafo& g);
 
 // revisa cada llamada a cuda, si algo falla muestra donde y termina
 #define CHECK_CUDA(llamada)                                                      \

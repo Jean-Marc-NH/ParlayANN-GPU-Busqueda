@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
     todoBien &= okDist;
 
     // ---- 4. grafos, uno a la vez ---------------------------------------------
-    struct { const char* nombre; std::string archivo; } grafos[] = {
+    struct { const char* nombre; UbicacionGrafo archivo; } grafos[] = {
         {"DiskANN", GRAFO_DISKANN},
         {"HCNNG", GRAFO_HCNNG},
         {"PyNNDescent", GRAFO_PYNN},
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
     for (auto& gr : grafos) {
         printf("\n== Grafo %s ==\n", gr.nombre);
         t0 = Reloj::now();
-        GrafoHost g = leerGrafoParlay(carpeta + gr.archivo);
+        GrafoHost g = leerGrafoParlay(rutaGrafo(carpeta, gr.archivo));
         double tLectura = segundosDesde(t0);
         printf("  n=%u gradoMax=%u gradoProm=%.1f aristas=%zu (lectura %.1f s)\n", g.n, g.gradoMax,
                (double)g.aristas.size() / g.n, g.aristas.size(), tLectura);
