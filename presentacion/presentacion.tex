@@ -1,0 +1,426 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot,es-noshorthands,es-tabla]{babel}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric}
+
+% ---- tema Madrid en azul ----
+\usetheme{Madrid}
+\definecolor{azul}{RGB}{31,78,140}
+\definecolor{azulclaro}{RGB}{111,159,216}
+\definecolor{rojo}{RGB}{192,80,77}
+\usecolortheme[named=azul]{structure}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{caption}[numbered]
+\setbeamercolor{block title}{bg=azul,fg=white}
+\setbeamercolor{block body}{bg=azul!8}
+
+\graphicspath{{figuras/}{../paper/figuras/}}
+\newcommand{\x}{$\times$}
+
+\title[Búsqueda de ParlayANN en GPU]{Búsqueda en GPU sobre los grafos de ParlayANN}
+\subtitle{Aceleración con resultados idénticos a la CPU}
+\author[Iman, Tejeda, Nadeau]{Samuel Iman Quispe \and Juan Victor Tejeda \and Jean Marc Nadeau Huamani}
+\institute[UCSP]{Escuela Profesional de Ciencia de la Computación\\
+Universidad Católica San Pablo\\[2pt] Computación Paralela}
+\date{Noviembre de 2026}
+
+\begin{document}
+
+% ============================================================================
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Contenido}
+  \tableofcontents
+\end{frame}
+
+% ============================================================================
+\section{Motivación}
+
+\begin{frame}{El problema: búsqueda de vecinos más cercanos}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item Dado un vector de consulta, encontrar los $k$ vectores más parecidos entre
+              millones (recomendación, búsqueda semántica, bases vectoriales).
+        \item La búsqueda exacta es muy cara $\Rightarrow$ búsqueda \textbf{aproximada} (ANNS).
+        \item Los métodos con \textbf{grafos de proximidad} dan el mejor compromiso
+              entre \textbf{recall} y \textbf{consultas por segundo (QPS)}.
+      \end{itemize}
+      \vspace{4pt}
+      \begin{block}{ParlayANN (PPoPP 2024)}
+        Cuatro algoritmos paralelos, sin bloqueos y deterministas:
+        DiskANN, HCNNG, PyNNDescent y HNSW. \textbf{Solo para CPU.}
+      \end{block}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{Nuestra pregunta}
+        ¿Cuánto se gana si ejecutamos \textbf{la misma búsqueda} de ParlayANN, sobre
+        \textbf{los mismos grafos}, en una GPU?
+      \end{block}
+      \vspace{4pt}
+      \begin{itemize}
+        \item Los trabajos en GPU (SONG, GGNN, CAGRA, BANG) cambian el grafo o la búsqueda.
+        \item Así no se sabe cuánto aporta el hardware y cuánto el algoritmo.
+        \item Nosotros \textbf{reproducimos exactamente} la CPU: la diferencia es solo hardware.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Antecedentes}
+
+\begin{frame}{Beam search sobre el grafo}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \begin{enumerate}
+        \item Empezar en el punto 0 con una frontera de $L_s$ candidatos.
+        \item Tomar el más cercano \textbf{no visitado}.
+        \item Leer sus vecinos y descartar los ya vistos (filtro hash).
+        \item Calcular distancias y mezclar con la frontera.
+        \item Recortar a $L_s$ y a $1{,}35\cdot d_k$.
+        \item Repetir hasta que toda la frontera esté visitada.
+      \end{enumerate}
+      \vspace{4pt}
+      $L_s$ grande $\Rightarrow$ más recall pero menos QPS.
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \centering
+      \begin{tikzpicture}[
+          nodo/.style={circle,draw=azul,fill=azul!10,minimum size=7mm,inner sep=0pt,font=\small},
+          vis/.style={circle,draw=azul,fill=azul,text=white,minimum size=7mm,inner sep=0pt,font=\small},
+          q/.style={star,star points=5,draw=rojo,fill=rojo!60,minimum size=6mm,inner sep=0pt}]
+        \node[vis] (a) at (0,0) {0};
+        \node[vis] (b) at (1.5,0.9) {};
+        \node[nodo] (c) at (1.4,-0.9) {};
+        \node[vis] (d) at (3,0.4) {};
+        \node[nodo] (e) at (3.1,1.7) {};
+        \node[nodo] (f) at (4.4,-0.4) {};
+        \node[nodo] (g) at (4.6,1.0) {};
+        \node[q] (q) at (5.3,0.3) {};
+        \draw[-{Latex},thick,azul] (a) -- (b);
+        \draw[-{Latex},thick,azul] (b) -- (d);
+        \draw[-{Latex},thick,azul] (d) -- (g);
+        \draw[gray] (a) -- (c) (b) -- (e) (c) -- (d) (d) -- (f) (f) -- (g) (e) -- (g);
+        \node[font=\scriptsize,rojo] at (5.3,-0.25) {consulta};
+        \node[font=\scriptsize,azul] at (1.5,-1.6) {nodos azules = visitados};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Los cuatro algoritmos y sus grafos}
+  \centering
+  \begin{tabular}{llcc}
+    \toprule
+    Algoritmo & Cómo construye el grafo & Grado máx. & Grado prom. \\
+    \midrule
+    DiskANN     & Inserción por lotes + poda $\alpha$ (grafo Vamana) & 64  & 57,4 \\
+    HCNNG       & Unión de MST de 50 agrupamientos jerárquicos       & 150 & 99,8 \\
+    PyNNDescent & Árboles + refinamiento con vecinos de vecinos      & 60  & 41,4 \\
+    HNSW        & Grafos en varios niveles (como una skip list)      & 64  & --- \\
+    \bottomrule
+  \end{tabular}
+  \vspace{10pt}
+  \begin{itemize}
+    \item Dataset \textbf{MSSPACEV-1M}: 1\,000\,000 de vectores int8 de 100 dimensiones,
+          29\,316 consultas, $k=10$.
+    \item Los grafos los construye \textbf{ParlayANN en CPU}; la GPU usa \textbf{los mismos archivos}.
+    \item HCNNG tiene \textbf{26,9 millones de aristas repetidas} (27\,\%) y PyNNDescent 5\,637:
+          hay que respetarlas para dar el mismo resultado.
+  \end{itemize}
+\end{frame}
+
+% ============================================================================
+\section{Diseño en GPU}
+
+\begin{frame}{Un warp por consulta}
+  \begin{columns}[c]
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item Cada consulta la resuelve un \textbf{warp de 32 hilos}.
+        \item Los warps toman consultas de forma fija ($q$, $q+W$, \dots):
+              sin atómicos y con resultado \textbf{determinista}.
+        \item Frontera y candidatos en \textbf{memoria compartida}; filtro y visitados en
+              memoria global (una región por warp).
+        \item Vectores rellenados de 100 a \textbf{128 bytes} y grafo como matriz
+              $n \times \text{grado}_{\max}$.
+      \end{itemize}
+      \vspace{4pt}
+      \begin{block}{Distancia exacta}
+        $\lVert q-p\rVert^2 = \lVert q\rVert^2 + \lVert p\rVert^2 - 2\,q\cdot p$\\
+        con \texttt{\_\_dp4a} (4 bytes por instrucción). Todo entero: \textbf{el mismo
+        número que la CPU}.
+      \end{block}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}[font=\scriptsize,
+          hilo/.style={draw=azul,fill=azul!15,minimum width=3.4mm,minimum height=5mm,inner sep=0pt},
+          vec/.style={draw=azul,fill=azul,text=white,minimum width=2.9cm,minimum height=5mm}]
+        \node[font=\small\bfseries,azul] at (2.9,2.0) {Warp = 32 hilos = 4 grupos de 8};
+        \foreach \g in {0,...,3} {
+          \foreach \h in {0,...,7} {
+            \node[hilo] at ({\g*1.5+\h*0.17},1.3) {};
+          }
+          \node[font=\tiny] at ({\g*1.5+0.6},0.85) {grupo \g};
+          \draw[-{Latex},azul] ({\g*1.5+0.6},0.65) -- ({\g*1.5+0.6},0.15);
+        }
+        \node[vec,minimum width=1.25cm] at (0.6,-0.15) {vector};
+        \node[vec,minimum width=1.25cm] at (2.1,-0.15) {vector};
+        \node[vec,minimum width=1.25cm] at (3.6,-0.15) {vector};
+        \node[vec,minimum width=1.25cm] at (5.1,-0.15) {vector};
+        \node[align=center] at (2.9,-1.0) {cada hilo lee 16 bytes $\Rightarrow$ el grupo lee\\
+          el vector de 128 bytes \textbf{de una vez}};
+        \node[align=center,azul] at (2.9,-1.7) {y cada hilo lleva 4 distancias:
+          \textbf{16 vectores en vuelo por warp}};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Reproducir exactamente la CPU}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Detalles de ParlayANN que copiamos}
+        \begin{itemize}
+          \item Inicio en el punto 0, $k=10$, corte $1{,}35\,d_k$ (umbral en
+                \texttt{double}, comparado en \texttt{float}).
+          \item Filtro ``ya visto'' con pérdidas (\texttt{hash64\_2}): cada vecino puede
+                pisar la casilla de otro.
+          \item Aristas repetidas $\Rightarrow$ la frontera es un \textbf{multiconjunto}
+                (\texttt{std::set\_union}).
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{block}{¿Cómo, si la CPU va en orden?}
+        \begin{itemize}
+          \item Los 32 hilos leen todas las casillas del filtro de una vez.
+          \item \texttt{\_\_match\_any\_sync} + búsqueda hacia atrás: cada hilo sabe qué
+                había en su casilla \textbf{justo antes de él}.
+          \item Resultado idéntico al recorrido secuencial.
+        \end{itemize}
+      \end{block}
+      \begin{block}{HNSW}
+        Candidatos ordenados \textbf{solo por distancia} y aceptación de vecinos
+        \textbf{en orden}; el resto (leer, filtrar, distancias) en paralelo.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Optimizaciones del kernel}
+  \begin{columns}[c]
+    \begin{column}{0.62\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{optimizaciones.png}
+    \end{column}
+    \begin{column}{0.36\textwidth}
+      \begin{itemize}
+        \item \textbf{8 hilos por vector}: lecturas de 128 bytes contiguas.
+        \item \textbf{Lecturas agrupadas}: la fila de vecinos y el filtro en un solo viaje.
+        \item \textbf{Más warps por SM}: se reusa memoria compartida.
+      \end{itemize}
+      \vspace{4pt}
+      \begin{alertblock}{Intento descartado}
+        Épocas en el filtro (no limpiarlo): mismo resultado, pero \textbf{30\,\% más
+        lento}. Limpiar deja las líneas en la caché L2.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Metodología}
+
+\begin{frame}{Plataformas y protocolo}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \centering
+      \begin{tabular}{lll}
+        \toprule
+         & Máquina A & Máquina B \\
+        \midrule
+        CPU      & i5-12450HX     & i7-13700HX \\
+        Hilos    & 12             & 24 \\
+        RAM      & 24 GB DDR5     & 16 GB DDR5 \\
+        GPU      & RTX 3050 Laptop & RTX 5050 Laptop \\
+        Arquit.  & Ampere         & Blackwell \\
+        VRAM     & 6 GB           & 8 GB \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{itemize}
+        \item \textbf{18 configuraciones} por algoritmo ($L_s$ de 10 a 1000) $\Rightarrow$
+              72 en total.
+        \item Calentamiento + \textbf{mejor de 5}, como big-ann-benchmarks.
+        \item GPU \textbf{de punta a punta}: copiar consultas + kernel + traer resultados.
+        \item CPU con \textbf{todos sus hilos}; modo de máximo rendimiento.
+        \item Validación \textbf{vecino por vecino} y verificación de \textbf{determinismo}.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================================
+\section{Resultados}
+
+\begin{frame}{Exactitud: la GPU devuelve lo mismo que la CPU}
+  \centering
+  \begin{tabular}{lcccccc}
+    \toprule
+     & Recall & \multicolumn{2}{c}{Mismos 10 vecinos} & Mismas & Determinista \\
+    Algoritmo & idéntico & A & B & distancias & (A y B) \\
+    \midrule
+    DiskANN     & 18/18 & 100\,\%   & 100\,\%   & 100\,\% & 18/18 \\
+    HCNNG       & 18/18 & 100\,\%   & 100\,\%   & 100\,\% & 18/18 \\
+    PyNNDescent & 18/18 & 100\,\%   & 100\,\%   & 100\,\% & 18/18 \\
+    HNSW        & 18/18 & 99,42\,\% & 99,44\,\% & 100\,\% & 18/18 \\
+    \bottomrule
+  \end{tabular}
+  \vspace{12pt}
+  \begin{block}{}
+    \textbf{72 de 72 configuraciones idénticas en las dos máquinas.} En HNSW, los vecinos
+    distintos están \textbf{a la misma distancia}: son empates que el heap de la CPU
+    resuelve de otra forma. Por eso podemos atribuir la diferencia de velocidad
+    \textbf{solo al hardware}.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Speedup con recall $\geq 0{,}95$}
+  \begin{columns}[c]
+    \begin{column}{0.6\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{speedup_maquinas.png}
+    \end{column}
+    \begin{column}{0.38\textwidth}
+      \begin{itemize}
+        \item Máquina A: \textbf{3,7\x{} a 7,2\x}.
+        \item Máquina B: \textbf{6,6\x{} a 10,7\x}.
+        \item En las 72 configuraciones la GPU es más rápida
+              (A: 2,5--14,5\x; B: 3,0--12,2\x).
+        \item Copiar datos CPU$\leftrightarrow$GPU cuesta \textbf{menos del 2\,\%} con
+              recall $\geq 0{,}95$.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Consultas por segundo con recall $\geq 0{,}95$}
+  \centering
+  \begin{tabular}{lrrrrrrrr}
+    \toprule
+     & \multicolumn{3}{c}{Máquina A (i5 + RTX 3050)} & \multicolumn{3}{c}{Máquina B (i7 + RTX 5050)}
+     & \multicolumn{2}{c}{Mejora B/A} \\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-9}
+    Algoritmo & CPU & GPU & Speedup & CPU & GPU & Speedup & CPU & GPU \\
+    \midrule
+    DiskANN     & 32\,079 & 140\,531 & \textbf{4,4\x} & 52\,325 & 561\,297 & \textbf{10,7\x} & 1,63\x & 3,99\x \\
+    HCNNG       & 19\,936 & 74\,808  & \textbf{3,8\x} & 28\,150 & 251\,385 & \textbf{8,9\x}  & 1,41\x & 3,36\x \\
+    PyNNDescent & 44\,258 & 163\,524 & \textbf{3,7\x} & 62\,352 & 605\,957 & \textbf{9,7\x}  & 1,41\x & 3,71\x \\
+    HNSW        & 7\,350  & 52\,635  & \textbf{7,2\x} & 16\,530 & 108\,921 & \textbf{6,6\x}  & 2,25\x & 2,07\x \\
+    \bottomrule
+  \end{tabular}
+  \vspace{12pt}
+  \begin{block}{}
+    Entre generaciones, la \textbf{CPU} mejoró \textbf{1,4--1,6\x} (con el doble de hilos)
+    y la \textbf{GPU 3,4--4,0\x} en DiskANN, HCNNG y PyNNDescent.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Curvas recall -- QPS}
+  \centering
+  \includegraphics[width=0.92\textwidth]{recall_qps_maquinas.png}\\[4pt]
+  {\small Líneas punteadas: CPU. Continuas: GPU de punta a punta. Escala logarítmica.}
+\end{frame}
+
+\begin{frame}{¿Qué limita al kernel?}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{microbenchmark.png}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{perfil.png}
+    \end{column}
+  \end{columns}
+  \vspace{6pt}
+  \begin{itemize}
+    \item RTX 3050: el kernel calcula \textbf{499 M distancias/s}, el \textbf{90\,\%} del máximo
+          medido $\Rightarrow$ limitado por el \textbf{acceso aleatorio a memoria}.
+    \item RTX 5050: \textbf{2\,026 M/s} y las distancias bajan al \textbf{28\,\%} del tiempo:
+          ahora pesan las partes con menos paralelismo (ordenar, unión, corte).
+  \end{itemize}
+\end{frame}
+
+% ============================================================================
+\section{Discusión y conclusiones}
+
+\begin{frame}{Discusión}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{La GPU escala mejor entre generaciones}
+        La RTX 5050 calcula \textbf{4,7\x} más distancias por segundo que la 3050; la CPU
+        nueva solo es 1,4--1,6\x{} más rápida. El speedup pasa de \textbf{\textasciitilde4\x{}
+        a \textasciitilde10\x}.
+      \end{block}
+      \begin{block}{HNSW escala distinto}
+        Aceptar un vecino cambia el umbral del siguiente: parte \textbf{secuencial}.
+        Su GPU mejora solo 2\x{} entre máquinas y con $L_s=1000$ baja a 3--4,6\x.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{Grafos distintos entre máquinas}
+        DiskANN: mismo grafo en A y B. HCNNG, PyNNDescent y HNSW: el recall de la CPU
+        difiere (hasta 0,015). Dentro de cada máquina el speedup es exacto; para comparar
+        generaciones, \textbf{DiskANN} es el caso más limpio.
+      \end{alertblock}
+      \begin{block}{Limitaciones}
+        Un solo dataset de 1M puntos; laptops (temperatura, energía); CPU en WSL2 y GPU en
+        Windows; la construcción sigue en CPU.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Conclusiones y trabajo futuro}
+  \begin{itemize}
+    \item Implementamos en CUDA la búsqueda de los \textbf{cuatro algoritmos} de ParlayANN
+          sobre sus propios grafos.
+    \item \textbf{Mismos resultados} que la CPU y \textbf{deterministas} en las 72
+          configuraciones, en dos máquinas.
+    \item Con recall $\geq 0{,}95$: \textbf{3,7--7,2\x} (RTX 3050) y \textbf{6,6--10,7\x}
+          (RTX 5050) más rápido que la CPU.
+    \item La clave fue leer cada vector con \textbf{8 hilos}; las épocas, aunque parecían
+          útiles, fueron más lentas.
+  \end{itemize}
+  \vspace{8pt}
+  \begin{block}{Trabajo futuro}
+    \begin{itemize}
+      \item Llevar a la GPU la \textbf{construcción} de los grafos (DiskANN y HNSW primero).
+      \item Datasets más grandes y reducir la parte secuencial de HNSW.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \vspace{20pt}
+  {\Huge\color{azul} ¡Gracias!}\\[16pt]
+  {\Large ¿Preguntas?}\\[24pt]
+  {\small Código y resultados: \url{https://github.com/Jean-Marc-NH/ParlayANN-GPU-Busqueda}}
+\end{frame}
+
+\end{document}

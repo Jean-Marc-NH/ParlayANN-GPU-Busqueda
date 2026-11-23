@@ -23,6 +23,14 @@ paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
 !paper/paper.pdf
+presentacion/*.aux
+presentacion/*.log
+presentacion/*.nav
+presentacion/*.out
+presentacion/*.snm
+presentacion/*.toc
+presentacion/*.vrb
+presentacion/*.synctex.gz
 
 # python
 __pycache__/
