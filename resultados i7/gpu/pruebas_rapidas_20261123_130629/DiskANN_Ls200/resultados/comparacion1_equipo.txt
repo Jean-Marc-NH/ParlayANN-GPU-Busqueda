@@ -1,0 +1,7 @@
+gpu: NVIDIA GeForce RTX 5050 Laptop GPU
+sms: 20
+compute: 12.0
+memoria_mb: 8151
+cuda_driver: 13030
+cuda_runtime: 12080
+corridas: 1

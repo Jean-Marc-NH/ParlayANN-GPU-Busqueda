@@ -1,0 +1,10 @@
+
+Dataset: msspacev-1M   Hilos: 12   Filas: 72
+Algoritmo         Build (s)  QPS@>=0.95  QPS@>=0.98  Recall max  Configs
+------------------------------------------------------------------------
+ParDiskANN             75.1     46,457      10,524       0.993       18
+ParHCNNG               95.1     26,300      14,240       0.997       18
+ParHNSW                76.0     11,408       4,057       0.987       18
+ParPyNNDescent        127.5     54,683      22,878       0.996       18
+
+QPS = mejor de RUNS repeticiones (protocolo big-ann-benchmarks); cada celda es el mejor punto del barrido que supera el umbral.

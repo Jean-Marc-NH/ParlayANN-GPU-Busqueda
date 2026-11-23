@@ -1,0 +1,21 @@
+=== CPU ===
+
+
+Name                      : 13th Gen Intel(R) Core(TM) i7-13700HX
+NumberOfCores             : 16
+NumberOfLogicalProcessors : 24
+MaxClockSpeed             : 2100
+
+
+
+=== RAM ===
+
+Manufacturer          Capacity Speed ConfiguredClockSpeed
+------------          -------- ----- --------------------
+Ramaxel Technology 17179869184  5600                 4800
+
+
+=== PLAN DE ENERGIA ===
+GUID de plan de energ¡a: 381b4222-f694-41f0-9685-ff5bb260df2e  (Equilibrado)=== GPU ===
+name, driver_version, memory.total [MiB], power.limit [W], clocks.max.sm [MHz], clocks.max.memory [MHz], pcie.link.gen.max, pcie.link.width.max
+NVIDIA GeForce RTX 5050 Laptop GPU, 610.74, 8151 MiB, [N/A], 3090 MHz, 12001 MHz, 5, 16

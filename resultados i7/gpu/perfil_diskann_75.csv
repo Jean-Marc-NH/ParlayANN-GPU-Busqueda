@@ -1,0 +1,2 @@
+algoritmo,Ls,visit,recall_gpu,qps_gpu_kernel,comp_prom,recall_cpu,qps_cpu,recall_igual,desbordes,fronteras_cortas
+DiskANN,75,-1,0.9545981716468823,491550.09,3535.08,0.9545981716468823,46456.67,1,0,13

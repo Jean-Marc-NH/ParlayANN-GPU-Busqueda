@@ -1,0 +1,2 @@
+algoritmo,Ls,visit,recall_gpu,qps_gpu_kernel,qps_gpu_total,comp_prom,recall_cpu_csv,qps_cpu_csv,recall_igual,desbordes,fronteras_cortas,determinista
+ParHNSW,75,-1,0.9311331696002183,283346.07,279738.16,2805.07,0.9311331696002183,20375.82,1,0,0,1
