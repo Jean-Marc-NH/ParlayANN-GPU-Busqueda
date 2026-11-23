@@ -316,8 +316,9 @@
     \bottomrule
   \end{tabular}}
   \vspace{8pt}
-  \nota{De una generación a otra la CPU mejoró entre 1.4\x{} y 1.6\x{} (con el doble de
-  hilos) y la GPU entre 3.4\x{} y 4.0\x.}
+  \nota{En DiskANN, HCNNG y PyNNDescent la CPU mejoró entre 1.4\x{} y 1.6\x{} de una
+  generación a otra (con el doble de hilos) y la GPU entre 3.4\x{} y 4.0\x. HNSW es la
+  excepción: 2.25\x{} y 2.07\x.}
   \fuente{\texttt{configuraciones.csv} de cada máquina; cada celda es el mejor punto del barrido que cumple el recall.}
 \end{frame}
 
@@ -358,7 +359,8 @@
       \begin{itemize}
         \item La GPU devuelve lo mismo que la CPU en las 72 configuraciones.
         \item Con recall $\geq$ 0.95 es entre 3.7\x{} y 10.7\x{} más rápida.
-        \item La GPU mejoró más que la CPU entre generaciones.
+        \item En DiskANN, HCNNG y PyNNDescent la GPU mejoró más que la CPU entre
+              generaciones.
         \item HNSW escala menos porque una parte de su búsqueda es secuencial.
       \end{itemize}
     \end{column}
@@ -408,7 +410,7 @@
   \end{enumerate}
   \vfill
   \centering
-  {\Large\color{azul} Gracias. ¿Preguntas?}
+  {\Large\color{azul} Gracias}
   \vfill
 \end{frame}
 

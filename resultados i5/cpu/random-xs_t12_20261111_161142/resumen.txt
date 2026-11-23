@@ -1,0 +1,10 @@
+
+Dataset: random-xs   Hilos: 12   Filas: 8
+Algoritmo         Build (s)  QPS@>=0.95  QPS@>=0.98  Recall máx  Configs
+------------------------------------------------------------------------
+ParDiskANN              0.1    699,921     699,921       0.998        2
+ParHCNNG                0.2    234,332     234,332       0.988        2
+ParHNSW                 1.9    136,321     136,321       0.996        2
+ParPyNNDescent          0.2    306,287     306,287       0.985        2
+
+QPS = mejor de RUNS repeticiones (protocolo big-ann-benchmarks); cada celda es el mejor punto del barrido que supera el umbral.

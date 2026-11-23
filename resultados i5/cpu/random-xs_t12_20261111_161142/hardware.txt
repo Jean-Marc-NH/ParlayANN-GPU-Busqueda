@@ -1,0 +1,8 @@
+fecha: 2026-11-11T16:11:42-05:00
+dataset: random-xs   hilos: 12   runs: 2
+algoritmos: ParDiskANN ParHCNNG ParPyNNDescent ParHNSW
+cpu: 12th Gen Intel(R) Core(TM) i5-12450HX
+nproc (WSL): 12
+ram (WSL): 11Gi
+ParlayANN commit: 45587ba
+big-ann-benchmarks: ppopp-artifact-final

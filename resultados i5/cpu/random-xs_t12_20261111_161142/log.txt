@@ -1,0 +1,280 @@
+
+========== ParDiskANN | random-xs | 12 hilos ==========
+Preparing datasets with 10000 random points and 1000 queries.
+Computing groundtruth
+2026-11-11 16:11:46,194 - annb - INFO - running only ParDiskANN
+2026-11-11 16:11:46,195 - annb - INFO - Order: [Definition(algorithm='ParDiskANN', constructor='vamana', module='benchmark.algorithms.vamana', docker_tag='billion-scale-benchmark-parlayann-artifact', docker_volumes=[], arguments=['euclidean', {'R': 16, 'L': 32, 'alpha': 1.2, 'two_pass': 0, 'T': 12}], query_argument_groups=[[{'Ls': 10}], [{'Ls': 50}]], disabled=False)]
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Building graph...
+Pass 10% complete
+Pass 20% complete
+Pass 30% complete
+Pass 40% complete
+Pass 50% complete
+Pass 60% complete
+Pass 70% complete
+Pass 80% complete
+Pass 90% complete
+Pass 100% complete
+beam search time: total: 0.0481
+bidirect time: total: 0.0133
+prune time: total: 0.0205
+Writing graph with 10000 points and max degree 16
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Detected 10000 points with max degree 16
+RW Namespace(dataset='random-xs', count=10, definitions='/home/usuario/parlay/big-ann-benchmarks/local_random-xs_t12.yaml', algorithm='ParDiskANN', docker_tag=None, list_algorithms=False, force=False, rebuild=True, runs=2, timeout=43200, max_n_algorithms=-1, power_capture='', t3=False, nodocker=True, upload_index=False, download_index=False, blob_prefix=None, sas_string=None, private_query=False, neurips23track='none', runbook_path='neurips23/streaming/simple_runbook.yaml')
+['euclidean', {'R': 16, 'L': 32, 'alpha': 1.2, 'two_pass': 0, 'T': 12}]
+Trying to instantiate benchmark.algorithms.vamana.vamana(['euclidean', {'R': 16, 'L': 32, 'alpha': 1.2, 'two_pass': 0, 'T': 12}])
+Threads:  12
+12
+Running ParDiskANN on random-xs
+Indexing time:  0.09813523292541504
+Wrote index to /home/usuario/parlay/big-ann-benchmarks/data/indices/vamana/RandomDS-10000/R16_L32_alpha1.2_threads12/R16_L32_alpha1.2_threads12
+Index loaded
+Built index in 0.09986810600003082
+Index memory footprint:  37632.0
+Starting query
+Threads at query time:  12
+Running query argument group 1 of 2...
+visit limit:  -1
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.001428732000022137), ('name', 'vamana'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.00206737600001361, 0.001428732000022137]), ('private_queries', False), ('build_time', 0.09986810600003082), ('index_size', 37632.0), ('algo', 'ParDiskANN'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+Running query argument group 2 of 2...
+visit limit:  -1
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.004280687000004946), ('name', 'vamana'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.005211982999981046, 0.004280687000004946]), ('private_queries', False), ('build_time', 0.09986810600003082), ('index_size', 37632.0), ('algo', 'ParDiskANN'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+
+========== ParHCNNG | random-xs | 12 hilos ==========
+Preparing datasets with 10000 random points and 1000 queries.
+Computing groundtruth
+2026-11-11 16:11:47,610 - annb - INFO - running only ParHCNNG
+2026-11-11 16:11:47,610 - annb - INFO - Order: [Definition(algorithm='ParHCNNG', constructor='hcnng', module='benchmark.algorithms.hcnng', docker_tag='billion-scale-benchmark-parlayann-artifact', docker_volumes=[], arguments=['euclidean', {'mst_deg': 3, 'num_clusters': 10, 'cluster_size': 1000, 'T': 12}], query_argument_groups=[[{'Ls': 10}], [{'Ls': 50}]], disabled=False)]
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Built cluster 0 of 10
+Built cluster 1 of 10
+Built cluster 2 of 10
+Built cluster 3 of 10
+Built cluster 4 of 10
+Built cluster 5 of 10
+Built cluster 6 of 10
+Built cluster 7 of 10
+Built cluster 8 of 10
+Built cluster 9 of 10
+Writing graph with 10000 points and max degree 30
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Detected 10000 points with max degree 30
+RW Namespace(dataset='random-xs', count=10, definitions='/home/usuario/parlay/big-ann-benchmarks/local_random-xs_t12.yaml', algorithm='ParHCNNG', docker_tag=None, list_algorithms=False, force=False, rebuild=True, runs=2, timeout=43200, max_n_algorithms=-1, power_capture='', t3=False, nodocker=True, upload_index=False, download_index=False, blob_prefix=None, sas_string=None, private_query=False, neurips23track='none', runbook_path='neurips23/streaming/simple_runbook.yaml')
+['euclidean', {'mst_deg': 3, 'num_clusters': 10, 'cluster_size': 1000, 'T': 12}]
+Trying to instantiate benchmark.algorithms.hcnng.hcnng(['euclidean', {'mst_deg': 3, 'num_clusters': 10, 'cluster_size': 1000, 'T': 12}])
+Threads:  12
+12
+Running ParHCNNG on random-xs
+Indexing time:  0.21128368377685547
+Wrote index to /home/usuario/parlay/big-ann-benchmarks/data/indices/hcnng/RandomDS-10000/mst3_nc10_cs1000_threads12/mst3_nc10_cs1000_threads12
+Index loaded
+Built index in 0.21333641299997907
+Index memory footprint:  45844.0
+Starting query
+Threads at query time:  12
+Running query argument group 1 of 2...
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.001408386000093742), ('name', 'hcnng'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.0022026300000561605, 0.001408386000093742]), ('private_queries', False), ('build_time', 0.21333641299997907), ('index_size', 45844.0), ('algo', 'ParHCNNG'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+Running query argument group 2 of 2...
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.004267443000003368), ('name', 'hcnng'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.004267443000003368, 0.004287221000026875]), ('private_queries', False), ('build_time', 0.21333641299997907), ('index_size', 45844.0), ('algo', 'ParHCNNG'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+
+========== ParPyNNDescent | random-xs | 12 hilos ==========
+Preparing datasets with 10000 random points and 1000 queries.
+Computing groundtruth
+2026-11-11 16:11:48,941 - annb - INFO - running only ParPyNNDescent
+2026-11-11 16:11:48,942 - annb - INFO - Order: [Definition(algorithm='ParPyNNDescent', constructor='pynndescent', module='benchmark.algorithms.pynndescent', docker_tag='billion-scale-benchmark-parlayann-artifact', docker_volumes=[], arguments=['euclidean', {'max_deg': 20, 'num_clusters': 10, 'cluster_size': 100, 'alpha': 1.0, 'delta': 0.05, 'T': 12}], query_argument_groups=[[{'Ls': 10}], [{'Ls': 50}]], disabled=False)]
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Cluster 0
+Cluster 1
+Cluster 2
+Cluster 3
+Cluster 4
+Cluster 5
+Cluster 6
+Cluster 7
+Cluster 8
+Cluster 9
+7067 elements changed
+Round 1 of 10 completed
+3282 elements changed
+Round 2 of 10 completed
+1333 elements changed
+Round 3 of 10 completed
+564 elements changed
+Round 4 of 10 completed
+242 elements changed
+Round 5 of 10 completed
+descent converged in 5 rounds (Early termination)
+Writing graph with 10000 points and max degree 20
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Detected 10000 points with max degree 20
+RW Namespace(dataset='random-xs', count=10, definitions='/home/usuario/parlay/big-ann-benchmarks/local_random-xs_t12.yaml', algorithm='ParPyNNDescent', docker_tag=None, list_algorithms=False, force=False, rebuild=True, runs=2, timeout=43200, max_n_algorithms=-1, power_capture='', t3=False, nodocker=True, upload_index=False, download_index=False, blob_prefix=None, sas_string=None, private_query=False, neurips23track='none', runbook_path='neurips23/streaming/simple_runbook.yaml')
+['euclidean', {'max_deg': 20, 'num_clusters': 10, 'cluster_size': 100, 'alpha': 1.0, 'delta': 0.05, 'T': 12}]
+Trying to instantiate benchmark.algorithms.pynndescent.pynndescent(['euclidean', {'max_deg': 20, 'num_clusters': 10, 'cluster_size': 100, 'alpha': 1.0, 'delta': 0.05, 'T': 12}])
+Threads:  12
+12
+Running ParPyNNDescent on random-xs
+Indexing time:  0.1811821460723877
+Wrote index to /home/usuario/parlay/big-ann-benchmarks/data/indices/pynndescent/RandomDS-10000/mxd20_nc10_cs100_alpha1.0_delta0.05_threads12/mxd20_nc10_cs100_alpha1.0_delta0.05_threads12
+Index loaded
+Built index in 0.1829837550000093
+Index memory footprint:  102936.0
+Starting query
+Threads at query time:  12
+Running query argument group 1 of 2...
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.0013605890000008003), ('name', 'pynndescent'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.0016712000000325133, 0.0013605890000008003]), ('private_queries', False), ('build_time', 0.1829837550000093), ('index_size', 102936.0), ('algo', 'ParPyNNDescent'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+Running query argument group 2 of 2...
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.0032649130000663718), ('name', 'pynndescent'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.0035140569999612126, 0.0032649130000663718]), ('private_queries', False), ('build_time', 0.1829837550000093), ('index_size', 102936.0), ('algo', 'ParPyNNDescent'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+
+========== ParHNSW | random-xs | 12 hilos ==========
+Preparing datasets with 10000 random points and 1000 queries.
+Computing groundtruth
+2026-11-11 16:11:50,366 - annb - INFO - running only ParHNSW
+2026-11-11 16:11:50,366 - annb - INFO - Order: [Definition(algorithm='ParHNSW', constructor='hnsw', module='benchmark.algorithms.hnsw', docker_tag='billion-scale-benchmark-parlayann-artifact', docker_volumes=[], arguments=['euclidean', {'m': 16, 'efc': 64, 'ml': 0.28, 'alpha': 1.2, 'T': 12}], query_argument_groups=[[{'Ls': 10}], [{'Ls': 50}]], disabled=False)]
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+Built: 6.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 12.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 18.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 24.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 30.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 36.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 42.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 48.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 54.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 60.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 66.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 72.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 78.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 84.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 90.55%
+# visited: 0
+# eval: 0
+size of C: 0
+Built: 96.55%
+# visited: 0
+# eval: 0
+size of C: 0
+# visited: 0
+# eval: 0
+size of C: 0
+U type written 9Desc_HNSWIf15Euclidian_PointIfEE
+Detected 10000 points with dimension 20
+Aligning dimension to 32
+U type loading 9Desc_HNSWIf15Euclidian_PointIfEE
+RW Namespace(dataset='random-xs', count=10, definitions='/home/usuario/parlay/big-ann-benchmarks/local_random-xs_t12.yaml', algorithm='ParHNSW', docker_tag=None, list_algorithms=False, force=False, rebuild=True, runs=2, timeout=43200, max_n_algorithms=-1, power_capture='', t3=False, nodocker=True, upload_index=False, download_index=False, blob_prefix=None, sas_string=None, private_query=False, neurips23track='none', runbook_path='neurips23/streaming/simple_runbook.yaml')
+['euclidean', {'m': 16, 'efc': 64, 'ml': 0.28, 'alpha': 1.2, 'T': 12}]
+Trying to instantiate benchmark.algorithms.hnsw.hnsw(['euclidean', {'m': 16, 'efc': 64, 'ml': 0.28, 'alpha': 1.2, 'T': 12}])
+Threads:  12
+12
+Running ParHNSW on random-xs
+Indexing time:  0.9912214279174805
+Wrote index to /home/usuario/parlay/big-ann-benchmarks/data/indices/vamana/RandomDS-10000/m16_efc64_ml0.28_alpha1.2_threads12/m16_efc64_ml0.28_alpha1.2_threads12
+Index loaded
+Built index in 1.8748852890000762
+Index memory footprint:  36276.0
+Starting query
+Threads at query time:  12
+Running query argument group 1 of 2...
+visit limit:  -1
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.0026117719999092515), ('name', 'hnsw'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.0036002749999397565, 0.0026117719999092515]), ('private_queries', False), ('build_time', 1.8748852890000762), ('index_size', 36276.0), ('algo', 'ParHNSW'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+Running query argument group 2 of 2...
+visit limit:  -1
+Got 1000 queries
+Run 1/2...
+Run 2/2...
+start store results
+dict_items([('best_search_time', 0.007335629000067456), ('name', 'hnsw'), ('run_count', 2), ('distance', 'euclidean'), ('type', 'knn'), ('count', 10), ('search_times', [0.007929952999916168, 0.007335629000067456]), ('private_queries', False), ('build_time', 1.8748852890000762), ('index_size', 36276.0), ('algo', 'ParHNSW'), ('dataset', 'random-xs'), ('threads', 12)])
+end store results
+
+========== Exportando resultados ==========
+Groundtruth for RandomRange(100000) not found.
+Looking at track:none, dataset:random-filter-s
+Groundtruth for RandomFilter(100000) not found.
+0.9885999999999999
+699921.3288317934
+  7:                                                                           vamana        0.989   699921.329
