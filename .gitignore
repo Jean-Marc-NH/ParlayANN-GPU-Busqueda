@@ -31,6 +31,7 @@ presentacion/*.snm
 presentacion/*.toc
 presentacion/*.vrb
 presentacion/*.synctex.gz
+!presentacion/presentacion.pdf
 
 # python
 __pycache__/
