@@ -13,6 +13,17 @@
 cpu_baseline/results/
 cuda/resultados/
 
+# latex (archivos intermedios; el pdf si se guarda)
+paper/*.aux
+paper/*.log
+paper/*.bbl
+paper/*.blg
+paper/*.out
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+!paper/paper.pdf
+
 # python
 __pycache__/
 *.pyc
