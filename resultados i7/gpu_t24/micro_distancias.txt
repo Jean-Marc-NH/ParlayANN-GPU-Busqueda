@@ -1,0 +1,5 @@
+20000000 distancias a puntos al azar:
+  A) 1 hilo por distancia        35.21 ms      568 M dist/s  ~ 72.7 GB/s de vectores  OK
+  B) 1 warp por distancia        20.08 ms      996 M dist/s  ~127.5 GB/s de vectores  OK
+  C) 8 hilos por distancia        7.72 ms     2590 M dist/s  ~331.5 GB/s de vectores  OK
+  D) 4 hilos por distancia        8.51 ms     2350 M dist/s  ~300.9 GB/s de vectores  OK

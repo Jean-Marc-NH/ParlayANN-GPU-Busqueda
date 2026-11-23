@@ -1,0 +1,20 @@
+GPU: NVIDIA GeForce RTX 5050 Laptop GPU
+base 1000000, consultas 29316, gt k=100
+  csv de CPU: corrida con 24 hilos
+  grafo R64_L128_alpha1.2_threads24 (construido con 24 hilos)
+
+=== DiskANN (gradoMax 64) ===
+    Ls  visit |   rec GPU   rec CPU  igual |    QPS GPU    QPS CPU  speedup |   comp/q
+  [perfil] Ls=75: 79.7 vueltas/consulta, 18579 ciclos/vuelta
+     inicio/salida     0.2%  (     41 ciclos/vuelta)
+     visitar           6.7%  (   1245 ciclos/vuelta)
+     filtro/vecinos   21.0%  (   3894 ciclos/vuelta)
+     distancias       28.1%  (   5217 ciclos/vuelta)
+     ordenar          13.1%  (   2435 ciclos/vuelta)
+     union            13.7%  (   2539 ciclos/vuelta)
+     mezcla            6.3%  (   1163 ciclos/vuelta)
+     cut+siguiente    11.0%  (   2045 ciclos/vuelta)
+    75      - |   0.95460       (=)     SI |     519855      52324   9.935x |     3535  [desbordes 0, cortas 13]
+
+configuraciones con recall identico a la CPU: 1 de 1
+resultados en resultados\paso2_parcial.csv
