@@ -1,13 +1,8 @@
-// busqueda.cuh
-// beam search en la GPU, traduccion de beam_search() de ParlayANN
-// (algorithms/utils/beamSearch.h, commit 45587ba)
+
 #pragma once
 
 #include "datos_gpu.h"
 
-// parametros de una configuracion de busqueda
-// son los mismos que arma el wrapper de python (python/graph_index.cpp):
-//   QueryParams QP(knn, beam_width, 1.35, visit_limit, G.max_degree())
 struct ConfigBusqueda {
     int Ls = 10;         // ancho del beam (beamSize)
     long limite = 0;     // maximo de nodos a visitar ("visit"); sin visit -> n
@@ -15,11 +10,10 @@ struct ConfigBusqueda {
     double cut = 1.35;   // recorte de la frontera
 };
 
-// banderas por consulta (para detectar casos raros)
+
 const int BANDERA_DESBORDE = 1;      // se lleno la tabla de visitados (no deberia pasar)
 const int BANDERA_FRONTERA_CORTA = 2;  // la frontera termino con menos de k elementos
 
-// secciones del perfilado (solo se usan compilando con -DPERFIL)
 enum SeccionPerfil {
     SEC_INICIO = 0,        // limpiar tablas, punto inicial, escribir salida
     SEC_VISITAR,           // marcar el actual como visitado
